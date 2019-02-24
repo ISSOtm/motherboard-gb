@@ -1,0 +1,16 @@
+
+# Bin folders
+bin/
+obj/
+deps/
+
+# Binary files
+*.pb16
+*.chr
+*.tilemap
+*.rar
+*.bin
+*.font
+
+# Special files
+dummy

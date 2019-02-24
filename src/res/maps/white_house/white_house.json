@@ -1,0 +1,26 @@
+{
+    "name": "white_house",
+
+    "bgp": "00011011",
+    "sgb": {
+        "bgp": "11011000",
+        "obp0": "00100111",
+        "obp1": "00000000",
+        "text_pal": "01101011",
+        "palettes": [ 3, 3, 3, 0 ],
+        "attr_file": 1
+    },
+    "map_script": "NULL",
+
+    "npcs": [],
+
+    "triggers": [
+        {"type": "coordscript", "x": 68, "y": 149, "x_size": 58, "y_size": 1, "args": ["TRIGTYPE_WARP", "MAP_VILLAGE", "0", "8 << 1"]}
+    ],
+
+    "warp-tos": [
+        {"x": 79, "y": 148, "processor": "EmptyFunc"}
+    ],
+
+    "scroll_type": "SCROLLING_4_WAY"
+}

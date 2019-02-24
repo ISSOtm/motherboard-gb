@@ -1,0 +1,86 @@
+Hi there. I'm ISSOtm.
+Here's a guide to get you started 'round this code.
+
+
+# Compiling
+
+Make sure you have Make (I've used GNU Make) installed on your machine. You'd better be on a Linux computer, or maybe Mac OS. Windows Subsystem for Linux is fine too, it seems.
+You will also need RGBDS (https://github.com/rednex/rgbds) installed. This was compiled using version 0.3.7, but if they didn't screw up too hard, later versions should work as well.
+You will also need Python 3 to run a few tools.
+You may also need a C++11 capable compiler.
+All of these need to be present in your PATH.
+
+To compile this, make sure you have sufficient privileges in this folder, position yourself there (in the same folder that this file is hosted in), and run the `make` command, without the backticks. This should yield a bunch of garbage (:P) in the `deps` and `obj` folders, and three output files in the `bin` folder.
+The .gb file is the ROM. Load that bad boy up in any emulator, but BGB is the best for debugging.
+The .sym file is very helpful towards debugging. Competent emulators (BGB) will load it alongside the ROM to add symbols to the ROM.
+The .map file explains how things are laid out in the ROM. Mostly useful, imo, to check out how much space is remaining in places.
+**DO NOT DISTRIBUTE THE SYM OR MAP FILE, THAT'S A VERY HIGH RISK OF GETTING THE ROM REVERSE-ENGINEERED MUCH MORE QUICKLY.** Unless that's what you want, I guess?
+
+By the way, if at any point `make` spews weird errors, try running `make clean`, then `make` again. And if `make clean` yells at you some more, delete the `bin`, `obj` and `deps` folders. That should hopefully fix things - if not, you've screwed up the source code ¯\_(ツ)_/¯
+
+If you get an error about `superfamiconv` not exiting, try doing `make superfamiconv` then `make` again. (That program isn't automatically compiled in case you alreayd have it on your machine.)
+
+
+# Source code structure
+
+As with all good amateur, one-man-team projects, this is a mess. Organized mess, but still. All source files should stay confined in the `src` folder, except the Makefile because that's how it works.
+The Makefile is highly complicated, I'll give you that. But at least it simplifies away a buncha issues.
+
+You can put anything you want at the root of the project. It's the `src` folder that's more sensitive.
+
+The root of the `src` folder is highly sensitive to `.asm` files. Each of them is the root of one "compilation unit". Basically, they'll be fed to RGBASM, and things will cascade from there. Let's take `engine.asm` as an example. These "root files" should only contain `INCLUDE`s.
+Each "compilation unit" uses the contents of one folder, whose name corresponds to the root file's name. (In our case, the `engine` folder.) This folder should only contain `.asm` files.
+Another folder's contents may be used, fairly more liberally: the `res` folder. This folder should only contain binary files destined to be used as `INCBIN` material. See special notes on that folder below.
+
+
+# Folder notes
+
+## `constants`, `macros`
+
+These folders contain a bunch of files that serve as compilation helpers. (They define useful macros and constants, mostly.) They should be included in every compilation unit's root file (see an existing one for an example.)
+
+## `home`
+
+This folder should contain only and all the things that will go in ROM bank 0 - these are things that will either access data from different ROM banks, or that will be accessed from many ROM banks. Simplest example: the memory copy functions.
+Ensure that only `ROM0` `SECTION`s go into that folder. A few exceptions can be made - I have put a handful of `ROM0` sections in the `engine` folder.
+
+## `engine`
+
+This folder should contain only and all the code-relevant things that will go in ROM banks. "Code-relevant things" means mostly code-y things; for example, the title screen goes there; but maps don't, even the code attached to these maps, because in a way it's data.
+Purpose being, you should be able to swap out the entire `data` folder and keep a working game.
+
+## `memory`
+
+All memory declarations (all kinds of RAM) should go here. I know that it makes the code much less portable, but it also allows much more fine-grained control over the memory, if such a need arises. Please stick to the files already existing.
+
+## `tools`
+
+This folder contains tools needed to build resources in the `res` folder. ...Considering I've myself put at least one tool in the `res` folder, it's more like "if a tool is used for a lot of different files, then it goes in `tools`".
+
+## `res`
+
+This folder is... kind of a mess. In there should go the files with that get `INCBIN`'d into the `engine` files. And also the original assets that led to their creation, automated or not.
+There's a catch with automated creation. If a file doesn't have an explicit rule on how to create it, `make` will fail to build, at least from scratch. The solution is to indicate how things are built, but you gotta follow some rules for it to stay automated.
+
+First, subdirs of the `res` folder should all contain one `Makefile` that contains instructions on how to build everything in that folder.
+The big catch is that the Makefile will not be run from the folder where it's in, but *from the root of the project*. Write your rules with that in mind.
+
+
+# Coding style
+
+...I'm fairly liberal regarding that. Some functions are heavily commented, others aren't. I've kept my casing consistent, however, and did my best to make all labels and names explicit on their own.
+Functions that aren't self-explaining should have a header that explains how they work. I recommend having an IDE or text editor that can display a function's definition -- I've used VS Code for its quality "RGBDS Z80" extension, and if you're using VS Code you'll notice that there are config files already there. *wink* ;) *wink*
+
+Protips:
+- Always use constants wherever something may change. (Not the number of bits in a byte, but the size of any struct.) Numbers aren't explicit, and also you never know when this or that is going to change.
+- Use `structs.asm` for structs. I've done my best to make it user-friendly. Or, rather, dev-friendly.
+- Use compression. Space is a premium, maybe not so much on a ROM, but manufacturing carts with larger ROM chips is more difficult and more costly. If the game is too expensive because of programmer laziness, then they don't deserve any money.
+- Be careful around licenses. A few files in this project come from external sources, and you better at least read the license disclaimers in their header, just to make sure nobody's gonna get sued.
+- If something's mostly standalone and fits in $4000 bytes, put it in ROMX. Otherwise, look for ways to put it in ROMX. If it would bloat the code too much, put it in ROM0 but put as much as possible in ROMX.
+- Avoid giant `SECTION`s. Many little sections let the linker be more efficient with ROM occupation.
+- Never ever fucking ever fix your `SECTION`s' starting addresses. Use `ALIGN`. If you're fixing a section's address, you better have a good reason.
+- Use Git. Or any version control system if it's better than Git. I haven't set it up because I'm working alone and I'm not too fond of Git if I can avoid it, but it's a very good failsafe. Also, keep backups.
+- Comment your code. Always.
+
+
+Peace.

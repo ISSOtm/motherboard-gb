@@ -1,0 +1,3 @@
+[submodule "src/tools/SuperFamiconv"]
+	path = src/tools/SuperFamiconv
+	url = https://github.com/optiroc/SuperFamiconv.git
