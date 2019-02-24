@@ -13,7 +13,6 @@ SECTION "Raster fx helper functions", ROM0
 ; Get a pointer to the currently free scanline buffer
 ; @return a The pointer
 ; @return c The pointer
-; @destroy a c
 GetFreeScanlineBuf::
     ldh a, [hWhichScanlineBuffer]
     xor LOW(hScanlineFXBuffer2) ^ LOW(hScanlineFXBuffer1)
@@ -21,9 +20,9 @@ GetFreeScanlineBuf::
     ret
 
 ; Switches to the currently free scanline buffer
-; @return c A pointer to the newly freed buffer
 ; @return b A pointer to the newly used buffer
-; @destroy a c
+; @return c A pointer to the newly freed buffer
+; @return a A pointer to the newly freed buffer
 SwitchScanlineBuf::
     call GetFreeScanlineBuf
     ldh [hWhichScanlineBuffer], a
@@ -33,7 +32,9 @@ SwitchScanlineBuf::
     ret
 
 ; Switches to the currently free scanline buffer, and copies it over to the other buffer
-; @destroy a c hl
+; @return hl A pointer just past the source buffer
+; @return c A pointer to just past the destination buffer
+; @return a 0
 SwitchAndCopyScanlineBuf::
     call SwitchScanlineBuf
     ld l, b
