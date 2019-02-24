@@ -16,6 +16,29 @@ pb16_byte0::
     db
 
 
+; Low byte of the current scanline buffer
+; Permits double-buffering
+hWhichScanlineBuffer::
+    db
+; Low byte of byte read by STAT handler
+; NO TOUCHY
+hScanlineFXIndex::
+    db
+
+; Scanline FX buffers (scanline, addr, value)
+; Double-buffering used to prevent race conditions
+hScanlineFXBuffer1::
+    ds 3 * 5 + 1
+hScanlineFXBuffer2::
+    ds 3 * 5 + 1
+
+; Addr/value pair to allow writing to 2 regs in the same scanline
+hSecondFXAddr::
+    db
+hSecondFXValue::
+    db
+
+
 ; Temporary variables
 
 UNION
@@ -202,27 +225,4 @@ hSoftResettingPermitted::
 ; High byte of the shadow OAM buffer to be transferred
 ; Reset by the VBlank handler to signal transfer completion
 hOAMBufferHigh::
-    db
-
-
-; Low byte of the current scanline buffer
-; Permits double-buffering
-hWhichScanlineBuffer::
-    db
-; Low byte of byte read by STAT handler
-; NO TOUCHY
-hScanlineFXIndex::
-    db
-
-; Scanline FX buffers (scanline, addr, value)
-; Double-buffering used to prevent race conditions
-hScanlineFXBuffer1::
-    ds 3 * 5 + 1
-hScanlineFXBuffer2::
-    ds 3 * 5 + 1
-
-; Addr/value pair to allow writing to 2 regs in the same scanline
-hSecondFXAddr::
-    db
-hSecondFXValue::
     db
