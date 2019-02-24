@@ -75,9 +75,6 @@ Reset::
     inc c
     jr nz, .clearHRAM
 
-    inc a ; ld a, 1
-    ldh [hVBlankFlag], a
-
     ; Copy OAM DMA routine
     ld hl, OAMDMA
     lb bc, OAMDMAEnd - OAMDMA, LOW(hOAMDMA)

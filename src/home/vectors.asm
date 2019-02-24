@@ -72,11 +72,11 @@ SECTION "rst30", ROM0[$0030]
 ; Note: if the interrupt occurs without being waited for, it will skip performing some actions
 WaitVBlank:
     xor a
+    inc a
     ldh [hVBlankFlag], a
 .waitVBlank
     halt
-    jr z, .waitVBlank
-    ret
+    jr .waitVBlank
 
 SECTION "rst38", ROM0[$0038]
 ; Please do not call
@@ -384,7 +384,7 @@ ENDR
 
     ldh a, [hVBlankFlag]
     and a
-    jr nz, .lagFrame
+    jr z, .lagFrame
 
 
     ; Poll joypad and update regs
@@ -444,10 +444,10 @@ ENDR
     pop af
 
 
-    ; The main code was waiting for VBlank, so tell it it's OK by resetting Z
+    ; The main code was waiting for VBlank, so make it escape the infinite loop
     xor a
-    inc a ; Clear Z
     ldh [hVBlankFlag], a ; Mark VBlank as ACK'd
+    pop af ; "Return" from vblank wait routine
     ret
 
 
