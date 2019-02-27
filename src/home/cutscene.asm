@@ -402,23 +402,3 @@ CutsceneJump:
 
 
 PURGE read_bytecode_byte
-
-
-SECTION "Test cutscene", ROMX ; FIXME: temporary, remove once loading zones are done
-
-TestCutscene::
-    instant set_btn_mask $00
-    cutscene_text TestText
-    cutscene_text_sync
-    instant cutscene_jump .loadVillage, "wLoadedMap [ $FF &"
-    load_map 1, 0, 8, 1
-    cutscene_jump .wait ; No need to make it instant, the transition won't happen in the frame
-.loadVillage
-    load_map 0, 0, 8, 0
-.wait
-    cutscene_jump .wait, "wOverworldState [ $FF & OVERWORLD_NORMAL == !"
-    instant set_btn_mask $FF
-    end_cutscene
-
-TestText:
-    dstr "SKIP TEXT BY PRESSING A", $0A, "OR HOLDING B", TEXT_WAITBUTTON, TEXT_CLEAR, "MOTHERBOARD GB", $0A, "DEMO VERSION", TEXT_WAITBUTTON

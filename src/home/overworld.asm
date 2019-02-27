@@ -1420,7 +1420,7 @@ OverworldStateLoadMap:
 OverworldStateNormal:
     dw CheckMapTriggers ; Function to run before input
     db PADF_DOWN | PADF_UP | PADF_LEFT | PADF_RIGHT ; Which buttons should be considered when held
-    dw MovePlayerDown, MovePlayerUp, MovePlayerLeft, MovePlayerRight, 0, StartTestCutscene, 0, 0 ; Functions to be ran when a button is pressed
+    dw MovePlayerDown, MovePlayerUp, MovePlayerLeft, MovePlayerRight, 0, 0, 0, 0 ; Functions to be ran when a button is pressed
 
 CheckMapTriggers:
     ; Check position-based triggers
@@ -1559,16 +1559,6 @@ MovePlayerRight:
     ret nz
     inc hl
     inc [hl]
-    ret
-
-
-StartTestCutscene:
-    ld a, LOW(TestCutscene)
-    ld [wCutscenePtr], a
-    ld a, HIGH(TestCutscene)
-    ld [wCutscenePtr+1], a
-    ld a, BANK(TestCutscene)
-    ld [wCutsceneBank], a
     ret
 
 
