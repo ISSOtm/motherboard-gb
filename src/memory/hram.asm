@@ -164,12 +164,6 @@ hTextboxBGP::
     db
 
 
-; When zero, lets VBlank know it needs to ACK
-; NOTE: VBlank doesn't preserve AF **on purpose** when this is set
-; Thus, make sure to wait for Z to be set before continuing
-hVBlankFlag::
-    db
-
 ; Low byte of the first free slot in the queue
 hFastCopyLowByte::
     db
@@ -186,6 +180,13 @@ hCameraRelativePosition::
 
 ; Place variables that need to be zero-cleared on init (and soft-reset) below
 hClearStart::
+
+
+; When zero, lets VBlank know it needs to ACK
+; NOTE: VBlank doesn't preserve AF **on purpose** when this is set
+; Thus, make sure to wait for Z to be set before continuing
+hVBlankFlag::
+    db
 
 
 ; Values transferred to hw regs on VBlank
