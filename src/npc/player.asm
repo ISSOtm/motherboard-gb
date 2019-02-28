@@ -14,14 +14,53 @@
 SECTION "Player data", ROMX
 
 PlayerDrawPtrs::
+    dw PlayerDownStandingDraw
+    dw PlayerDownStandingDraw ; FIXME:
     dw PlayerLeftStandingDraw
-    dw PlayerLeftWalkingDraw
     dw PlayerRightStandingDraw
+    dw PlayerDownStandingDraw ; FIXME:
+    dw PlayerDownStandingDraw ; FIXME:
+    dw PlayerLeftWalkingDraw
     dw PlayerRightWalkingDraw
 
+
+PlayerDownStandingDraw:
+    db $FF
+    db $FF
+    dw .frame0
+
+    dw PlayerDownStandingTiles
+.frame0
+    db 5
+
+    db -29
+    db -12
+    db 0
+    db 0
+
+    db -29
+    db -4
+    db 2
+    db 0
+
+    db -29
+    db 4
+    db 4
+    db 0
+
+    db -13
+    db -8
+    db 6
+    db 0
+
+    db -13
+    db 0
+    db 8
+    db 0
+
 PlayerLeftStandingDraw:
-    db $10 ; Length of animation
-    db $10 ; Number of frames in this frame
+    db $FF ; Length of animation
+    db $FF ; Number of frames in this frame
     dw .frame0
 
     dw PlayerSideStandingTiles
@@ -53,14 +92,9 @@ PlayerLeftStandingDraw:
     db 6
     db OAMF_XFLIP
 
-PlayerLeftWalkingDraw:
-    db
-    db
-    dw
-
 PlayerRightStandingDraw:
-    db $10
-    db $10
+    db $FF
+    db $FF
     dw .frame0
 
     dw PlayerSideStandingTiles
@@ -92,13 +126,273 @@ PlayerRightStandingDraw:
     db 8
     db 0
 
+
+PlayerLeftWalkingDraw:
+    db $40
+    db $10
+    dw .frame0
+    db $10
+    dw .frame1
+    db $10
+    dw .frame0
+    db $10
+    dw .frame2
+
+    dw PlayerSideWalkingTiles0
+.frame0
+    db 5 ; Number of OAM entries
+
+    db -29
+    db -12
+    db 4
+    db OAMF_XFLIP
+
+    db -29
+    db -4
+    db 2
+    db OAMF_XFLIP
+
+    db -29
+    db 4
+    db 0
+    db OAMF_XFLIP
+
+    db -13
+    db -8
+    db 8
+    db OAMF_XFLIP
+
+    db -13
+    db 0
+    db 6
+    db OAMF_XFLIP
+
+    dw PlayerSideWalkingTiles1
+.frame1
+    db 5 ; Number of OAM entries
+
+    db -28
+    db -12
+    db 4
+    db OAMF_XFLIP
+
+    db -28
+    db -4
+    db 2
+    db OAMF_XFLIP
+
+    db -28
+    db 4
+    db 0
+    db OAMF_XFLIP
+
+    db -12
+    db -8
+    db 8
+    db OAMF_XFLIP
+
+    db -12
+    db 0
+    db 6
+    db OAMF_XFLIP
+
+    dw PlayerSideWalkingTiles2
+.frame2
+    db 5 ; Number of OAM entries
+
+    db -28
+    db -12
+    db 4
+    db OAMF_XFLIP
+
+    db -28
+    db -4
+    db 2
+    db OAMF_XFLIP
+
+    db -28
+    db 4
+    db 0
+    db OAMF_XFLIP
+
+    db -12
+    db -8
+    db 8
+    db OAMF_XFLIP
+
+    db -12
+    db 0
+    db 6
+    db OAMF_XFLIP
+
 PlayerRightWalkingDraw:
-    db 
-    db 
-    dw  
+    db $40
+    db $10
+    dw .frame0
+    db $10
+    dw .frame1
+    db $10
+    dw .frame0
+    db $10
+    dw .frame2
+
+    dw PlayerSideWalkingTiles0
+.frame0
+    db 5
+
+    db -29
+    db -12
+    db 0
+    db 0
+
+    db -29
+    db -4
+    db 2
+    db 0
+
+    db -29
+    db 4
+    db 4
+    db 0
+
+    db -13
+    db -8
+    db 6
+    db 0
+
+    db -13
+    db 0
+    db 8
+    db 0
+
+    dw PlayerSideWalkingTiles1
+.frame1
+    db 5
+
+    db -28
+    db -12
+    db 0
+    db 0
+
+    db -28
+    db -4
+    db 2
+    db 0
+
+    db -28
+    db 4
+    db 4
+    db 0
+
+    db -12
+    db -8
+    db 6
+    db 0
+
+    db -12
+    db 0
+    db 8
+    db 0
+
+    dw PlayerSideWalkingTiles2
+.frame2
+    db 5
+
+    db -28
+    db -12
+    db 0
+    db 0
+
+    db -28
+    db -4
+    db 2
+    db 0
+
+    db -28
+    db 4
+    db 4
+    db 0
+
+    db -12
+    db -8
+    db 6
+    db 0
+
+    db -12
+    db 0
+    db 8
+    db 0
 
 
 SECTION "Player tiles", ROMX
 
+; Load some player gfx
+; @param de A pointer to the gfx to be loaded (will be loaded from BANK("Player tiles"))
+; @return hl hFastCopyNbReq
+; @return a New value of hFastCopyLowByte
+LoadPlayerGfx::
+    ; Copy the data from `de` to the WRAM player tile buffer
+    ld a, BANK("Player tiles")
+    rst bankswitch
+    ld hl, wPlayerTiles+16
+    ld c, 16
+    rst memcpy_small
+    ld l, LOW(wPlayerTiles+48)
+    ld c, 16
+    rst memcpy_small
+    ld l, LOW(wPlayerTiles+80)
+    ld c, 16
+    rst memcpy_small
+    ld l, LOW(wPlayerTiles+96)
+    ld c, 16 * 4
+    rst memcpy_small
+LoadCurrentPlayerGfx::
+    ; Check if the player gfx copy is already pending
+    ld a, [wPlayerFastCopyACK]
+    and a
+    ret z
+    ; If not, reset the ACK flag,
+    xor a
+    ld [wPlayerFastCopyACK], a
+    ; ...And craft the copy request
+    ld h, HIGH(wFastCopyQueue)
+    ldh a, [hFastCopyLowByte]
+    ld l, a
+    ld [wPlayerReqPtrLow], a
+    ; a can be anything, since we're not copying from ROMX... (even oob numbers are fine)
+    ld [hli], a
+    xor a ; ld a, LOW(wPlayerTiles)
+    ld [hli], a
+    ld a, HIGH(wPlayerTiles)
+    ld [hli], a
+    ld a, LOW(vPlayerTiles + 16 * 4)
+    ld [hli], a
+    ld a, HIGH(vPlayerTiles + 16 * 4)
+    ld [hli], a
+    ld a, LOW(wPlayerFastCopyACK)
+    ld [hli], a
+    ld a, $93
+    ld [hli], a
+    ld a, NB_PLAYER_TILES
+    ld [hli], a
+    ld a, l
+    ld hl, hFastCopyNbReq
+    inc [hl]
+    and $7F
+    ldh [hFastCopyLowByte], a
+    ret
+
+
 PlayerSideStandingTiles:
 INCBIN "res/npc/player/side/standing.chr"
+
+PlayerSideWalkingTiles0:
+INCBIN "res/npc/player/side/walking0.chr"
+PlayerSideWalkingTiles1:
+INCBIN "res/npc/player/side/walking1.chr"
+PlayerSideWalkingTiles2:
+INCBIN "res/npc/player/side/walking2.chr"
+
+
+PlayerDownStandingTiles:
+INCBIN "res/npc/player/front_back/down_standing.chr"

@@ -8,5 +8,5 @@ INCLUDE "engine/title_screen.asm"
 
 INCLUDE "engine/error_handler.asm"
 
-INCLUDE "engine/player.asm"
+INCLUDE "engine/player_state_machine.asm"
 INCLUDE "engine/player_overlap.asm"

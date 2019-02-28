@@ -40,6 +40,7 @@ OverworldLoop:
     ; Reset "single-frame" vars
     xor a
     ld [wCurStateFirstFrame], a
+    ld [wPlayerStateChange], a
 
     ; Change state if needed
     ld a, [wNextState]
@@ -440,6 +441,70 @@ OverworldUpdate:
 .noPalPacketAction
 
 
+    ; Compute next player state
+    ld a, BANK(PlayerStateMachineFuncs)
+    rst bankswitch
+    ld a, [wPlayer_DisplayType]
+    add a, a
+    add a, LOW(PlayerStateMachineFuncs)
+    ld l, a
+    adc a, HIGH(PlayerStateMachineFuncs)
+    sub l
+    ld h, a
+    ld a, [hli]
+    ld h, [hl]
+    ld l, a
+    and a ; Reset carry because a lot of callees simply `ret (n)z` without changing the C flag
+    rst call_hl
+    jr nc, .noStateChange
+    ld hl, wPlayer_DisplayCounter
+    xor a
+    ld [hld], a ; Reset counter
+    ld [hl], e ; Change state
+.noStateChange
+
+    ; Load player tiles
+    ld a, BANK(PlayerDrawPtrs)
+    rst bankswitch
+    ld a, [wPlayer_DisplayType]
+    add a, a
+    add a, LOW(PlayerDrawPtrs)
+    ld l, a
+    adc a, HIGH(PlayerDrawPtrs)
+    sub l
+    ld h, a
+    ld a, [hli]
+    ld h, [hl]
+    ld l, a
+    ld a, [wPlayer_DisplayCounter] ; We expect this to be in a valid state, which it should be
+.seekFrame
+    inc hl
+    sub [hl]
+    inc hl
+    inc hl
+    jr nc, .seekFrame
+    ld a, [hld]
+    ld l, [hl]
+    ld h, a
+    dec hl
+    ld a, [hld]
+    ld e, [hl]
+    ld d, a
+    ld hl, wPlayerLoadedTiles + 1
+    cp [hl] ; Check if tiles are already loaded
+    ld [hld], a
+    ld a, e
+    jr nz, .notAlreadyLoaded
+    cp [hl]
+    jr z, .playerTilesAlreadyLoaded
+.notAlreadyLoaded
+    ld [hld], a
+    ld a, BANK(LoadPlayerGfx)
+    rst bankswitch
+    call LoadPlayerGfx
+.playerTilesAlreadyLoaded
+
+
     ; Redraw NPCs
     ld hl, wPlayer
     ld de, wShadowOAM + 2 * 4 ; Reserve two objects for player shifting
@@ -449,21 +514,19 @@ OverworldUpdate:
     add a, (256 - SCRN_Y) / 2
     ldh a, [hCameraRelativePosition+1]
     adc a, 0
-    scf ; Set carry for below OAM check
     jr nz, .npcCulledOut
     ldh a, [hCameraRelativePosition+2]
     add a, (256 - SCRN_X) / 2
     ldh a, [hCameraRelativePosition+3]
     adc a, 0
-    scf ; Set carry for below OAM check
     jr nz, .npcCulledOut
     ld a, [hli] ; Read display type
     add a, a ; Double for upcoming ptr computation
     ; (assuming that the object has no more than 128 different types)
-    ld b, a
+    ld c, a
     push hl ; Save this pointer to do write-back later
     ld a, [hli] ; Read display counter
-    ld c, a
+    ld b, a
     ld a, [hli]
     ldh [hNPCTileID], a
     ld a, [hli]
@@ -472,7 +535,7 @@ OverworldUpdate:
     rst bankswitch
     ld a, [hli] ; Read draw struct ptr
     ld h, [hl]
-    add a, b ; Add display type offset
+    add a, c ; Add display type offset
     ld l, a
     adc a, h
     sub l
@@ -480,14 +543,17 @@ OverworldUpdate:
     ld a, [hli]
     ld h, [hl]
     ld l, a
-    ld b, [hl] ; Read anim length (don't inc to improve upcoming loop)
-    ld a, c ; Get display counter
+    ld c, [hl] ; Read anim length (don't inc to improve upcoming loop)
+    ld a, b ; Get display counter
     inc a
-    sub b
+    sub c
     jr nc, .wrapAnimCnt
-    add a, b
+    add a, c
 .wrapAnimCnt
     ld c, a
+    ; Use current value, because increment should only affect next frame
+    ; Important for player tile loading to work correctly
+    ld a, b
 .seekAnimFrame
     inc hl ; Advance to length
     sub [hl]
@@ -506,8 +572,8 @@ OverworldUpdate:
     inc hl
     dec a
     cp SCRN_Y + 16 - 1
+    jr nc, .offscreen
     inc a
-    jr nc, .offscreen ; Positioned after `inc a` otherwise the label is too far. IKR???
     ld [de], a
     inc e ; inc de
     ldh a, [hCameraRelativePosition+2]
@@ -541,8 +607,8 @@ OverworldUpdate:
     ; Here: NC <=> OAM is full
     pop hl
     ld [hl], c ; Write back new anim cnt
-.npcCulledOut ; This gets jumped to on C if the NPC isn't drawn, which can't have overflowed OAM, therefore NC <=> OAM isn't full
     jr nc, .OAMFull ; Prevent overflowing OAM
+.npcCulledOut ; This gets jumped to on C if the NPC isn't drawn, which can't have overflowed OAM, therefore NC <=> OAM isn't full
     ; Advance to next NPC, if it exists
     ld a, l
     or sizeof_NPC - 1
@@ -561,6 +627,21 @@ OverworldUpdate:
     ld e, a
     cp $A0
     jr c, .clearOAM
+    jr .OAMFull ; Jump over the following bit of code
+
+
+    ; Bit of code that's referenced below
+.offscreen
+    inc hl ; Skip X pos
+    inc e ; we're already at first byte of entry
+.offscreenCancel
+    dec e ; dec de
+    inc hl ; Skip tile ID
+    ; Attr will be skipped after the jump
+    scf ; Set carry to signify OAM can't be full
+    jr .skipOffscreen
+
+
 .OAMFull
     ld a, d ; ld a, HIGH(wShadowOAM)
     ldh [hOAMBufferHigh], a
@@ -604,27 +685,17 @@ OverworldUpdate:
     jr c, .checkOffenderSprite
 .playerOffscreen
 
-    ; Player sprite doesn't need to be shifted, so we don't need to do anything
-    ; ...or do we??
+    ; Player sprite doesn't need to be shifted, check if they should be restored
     ld a, [wPlayerTilesShifted]
     and a
     jp z, OverworldLoop
     xor a
     ld [wPlayerTilesShifted], a
     ; Copy the original gfx back
+    ld a, BANK(LoadCurrentPlayerGfx)
+    rst bankswitch
     call LoadCurrentPlayerGfx
     jp OverworldLoop
-
-    ; Bit of code that's referenced below
-.offscreen
-    inc hl ; Skip X pos
-    inc e ; we're already at first byte of entry
-.offscreenCancel
-    dec e ; dec de
-    inc hl ; Skip tile ID
-    ; Attr will be skipped after the jump
-    scf ; Set carry to signify OAM can't be full
-    jr .skipOffscreen
 
 
 .scrollingFuncs
@@ -1221,7 +1292,7 @@ OverworldStateBegin:
     xor a
     ld [wTargetMap], a
 
-    xor a
+    ; xor a
     ld [wCameramanID], a
 
     ld hl, wPlayer
@@ -1238,11 +1309,19 @@ OverworldStateBegin:
     ld [hld], a
     ld [hl], a
 
-    ld de, PlayerSideStandingTiles
-    jp LoadPlayerGfx
+    ld a, LOW(PlayerSideStandingTiles)
+    ld [wPlayerLoadedTiles], a
+    ld a, HIGH(PlayerSideStandingTiles)
+    ld [wPlayerLoadedTiles+1], a
+    ; LoadPlayerGfx is in another ROM bank, we can't just jump to it: ROP time!
+    ld de, LoadPlayerGfx
+    push de
+    ld de, PlayerSideStandingTiles ; Passed as argument to LoadPlayerGfx because ROMBankswitch preserves DE
+    ld a, BANK(LoadPlayerGfx)
+    jp ROMbankswitch
 
 ; .player
-    dstruct NPC, .player, 0, $80, 0, $F1, 2, 0, 4, 0, BANK(PlayerDrawPtrs), PlayerDrawPtrs, 0, EmptyFunc
+    dstruct NPC, .player, 0, $80, 0, $F1, PLAYER_STATE_STANDING_RIGHT, 0, 4, 0, BANK(PlayerDrawPtrs), PlayerDrawPtrs, 0, EmptyFunc
 
 
 OverworldStateFadeIn:
@@ -1512,6 +1591,11 @@ MovePlayerDown:
     cp SCROLLING_HORIZ
     ret z
 
+    ; TODO: collision
+
+    ld hl, wPlayerStateChange
+    set DOWN_HELD, [hl]
+
     ld hl, wPlayer_YPos
     inc [hl]
     ret nz
@@ -1523,6 +1607,11 @@ MovePlayerUp:
     ld a, [wScrollingType]
     cp SCROLLING_HORIZ
     ret z
+
+    ; TODO: collision
+
+    ld hl, wPlayerStateChange
+    set UP_HELD, [hl]
     
     ld hl, wPlayer_YPos
     dec [hl]
@@ -1533,11 +1622,10 @@ MovePlayerUp:
     ret
 
 MovePlayerLeft:
-    ; TODO: temp thingy until anim system is in place
-    ld hl, wPlayer_DisplayType
-    ld a, [hl]
-    and ~2
-    ld [hl], a
+    ; TODO: collision
+
+    ld hl, wPlayerStateChange
+    set LEFT_HELD, [hl]
 
     ld hl, wPlayer_XPos
     dec [hl]
@@ -1548,11 +1636,10 @@ MovePlayerLeft:
     ret
 
 MovePlayerRight:
-    ; TODO: temp thingy until anim system is in place
-    ld hl, wPlayer_DisplayType
-    ld a, [hl]
-    or 2
-    ld [hl], a
+    ; TODO: collision
+
+    ld hl, wPlayerStateChange
+    set RIGHT_HELD, [hl]
 
     ld hl, wPlayer_XPos
     inc [hl]

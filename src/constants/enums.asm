@@ -93,3 +93,23 @@ ENDM
     enum_elem PAL_PACK_ACTION_NONE
     enum_elem PAL_PACK_ACTION_RESTORE
     enum_elem PAL_PACK_ACTION_TEXTBOX_LAYOUT
+
+
+; wPlayerStateChange bits
+    enum_start 4
+    ; The bits MUST be the upper 4!
+    enum_elem RIGHT_HELD
+    enum_elem LEFT_HELD
+    enum_elem UP_HELD
+    enum_elem DOWN_HELD
+
+; Player states
+    enum_start
+    enum_elem PLAYER_STATE_STANDING_DOWN
+    enum_elem PLAYER_STATE_STANDING_UP
+    enum_elem PLAYER_STATE_STANDING_LEFT
+    enum_elem PLAYER_STATE_STANDING_RIGHT
+    enum_elem PLAYER_STATE_WALKING_DOWN
+    enum_elem PLAYER_STATE_WALKING_UP
+    enum_elem PLAYER_STATE_WALKING_LEFT
+    enum_elem PLAYER_STATE_WALKING_RIGHT

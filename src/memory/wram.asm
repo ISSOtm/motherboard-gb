@@ -272,6 +272,12 @@ PURGE TRIGGER_ID
 ; This is ALIGN[8]
 
 
+wPlayerStateChange::
+    db
+wPlayerLoadedTiles::
+    dw
+
+
 SECTION "VWF engine memory", WRAM0,ALIGN[4]
 
 ; Align these buffers to perhaps HDMA them?
