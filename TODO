@@ -2,3 +2,5 @@ Player state machine
 Collision detection
 Finish overlap fix
 Cutscene stack
+
+Implement dummy rules for depended files (so Make doesn't error out when they're deleted)
