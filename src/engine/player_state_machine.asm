@@ -22,7 +22,7 @@ PlayerStateStanding:
     ld a, [hli]
     and (1 << DOWN_HELD) | (1 << UP_HELD) | (1 << LEFT_HELD) | (1 << RIGHT_HELD)
     ret z ; Carry is clear
-    jp CheckNextWalkingState
+    jr CheckNextWalkingState
 
 
 PlayerStateWalkingDown:
