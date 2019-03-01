@@ -656,8 +656,6 @@ OverworldUpdate:
     ; Get position of player's top-left sprite, and offset it
     ; This is because sprites located to the top/left of the player might be offenders
     ld a, [wShadowOAM+8]
-    and a ; If player is off-screen, it ain't being overlapped
-    jr z, .playerOffscreen
     sub 6
     ld b, a
     ld a, [wShadowOAM+8+1]
@@ -670,6 +668,8 @@ OverworldUpdate:
     ; FIXME: this uses hardcoded hitbox sizes, I'm sorry if you have to modify this
 .checkOffenderSprite
     ld a, [hli]
+    and a
+    jr z, .spriteOkay ; Don't overlap sprites that are actually invisible
     sub b
     cp 38 ; TODO: check if that's correct
     jr nc, .spriteOkay
@@ -683,7 +683,6 @@ OverworldUpdate:
     ld l, a
     cp $A0
     jr c, .checkOffenderSprite
-.playerOffscreen
 
     ; Player sprite doesn't need to be shifted, check if they should be restored
     ld a, [wPlayerTilesShifted]
