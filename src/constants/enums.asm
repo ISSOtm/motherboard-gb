@@ -97,7 +97,7 @@ ENDM
 
 ; wPlayerStateChange bits
     enum_start 4
-    ; The bits MUST be the upper 4!
+    ; These bits MUST be the upper 4!
     enum_elem RIGHT_HELD
     enum_elem LEFT_HELD
     enum_elem UP_HELD
