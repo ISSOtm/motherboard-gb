@@ -18,8 +18,8 @@ PlayerDrawPtrs::
     dw PlayerUpStandingDraw
     dw PlayerLeftStandingDraw
     dw PlayerRightStandingDraw
-    dw PlayerDownStandingDraw ; FIXME:
-    dw PlayerDownStandingDraw ; FIXME:
+    dw PlayerDownWalkingDraw
+    dw PlayerUpWalkingDraw
     dw PlayerLeftWalkingDraw
     dw PlayerRightWalkingDraw
 
@@ -82,6 +82,66 @@ PlayerRightStandingDraw:
     db -29, 4, 4, 0
     db -13, -8, 6, 0
     db -13, 0, 8, 0
+
+
+PlayerDownWalkingDraw:
+    db $40
+    db $10
+    dw PlayerDownStandingFrame
+    db $10
+    dw .frame0
+    db $10
+    dw PlayerDownStandingFrame
+    db $10
+    dw .frame1
+
+    dw PlayerDownWalkingTiles
+.frame0
+    db 5
+    db -28, -12, 0, 0
+    db -28, -4, 2, 0
+    db -28, 4, 4, 0
+    db -12, -8, 6, 0
+    db -12, 0, 8, 0
+
+    dw PlayerDownWalkingTiles
+.frame1
+    db 5
+    db -28, -13, 4, OAMF_XFLIP
+    db -28, -5, 2, OAMF_XFLIP
+    db -28, 3, 0, OAMF_XFLIP
+    db -12, -9, 8, OAMF_XFLIP
+    db -12, -1, 6, OAMF_XFLIP
+
+
+PlayerUpWalkingDraw:
+    db $40
+    db $10
+    dw PlayerUpStandingFrame
+    db $10
+    dw .frame0
+    db $10
+    dw PlayerUpStandingFrame
+    db $10
+    dw .frame1
+
+    dw PlayerUpWalkingTiles
+.frame0
+    db 5
+    db -28, -12, 0, 0
+    db -28, -4, 2, 0
+    db -28, 4, 4, 0
+    db -12, -8, 6, 0
+    db -12, 0, 8, 0
+
+    dw PlayerUpWalkingTiles
+.frame1
+    db 5
+    db -28, -13, 4, OAMF_XFLIP
+    db -28, -5, 2, OAMF_XFLIP
+    db -28, 3, 0, OAMF_XFLIP
+    db -12, -9, 8, OAMF_XFLIP
+    db -12, -1, 6, OAMF_XFLIP
 
 
 PlayerLeftWalkingDraw:
@@ -221,18 +281,21 @@ LoadCurrentPlayerGfx::
     ret
 
 
+PlayerDownStandingTiles:
+INCBIN "res/npc/player/front_back/down_standing.chr"
+PlayerUpStandingTiles:
+INCBIN "res/npc/player/front_back/up_standing.chr"
 PlayerSideStandingTiles:
 INCBIN "res/npc/player/side/standing.chr"
 
+
+PlayerDownWalkingTiles:
+INCBIN "res/npc/player/front_back/down_walking.chr"
+PlayerUpWalkingTiles:
+INCBIN "res/npc/player/front_back/up_walking.chr"
 PlayerSideWalkingTiles0:
 INCBIN "res/npc/player/side/walking0.chr"
 PlayerSideWalkingTiles1:
 INCBIN "res/npc/player/side/walking1.chr"
 PlayerSideWalkingTiles2:
 INCBIN "res/npc/player/side/walking2.chr"
-
-
-PlayerDownStandingTiles:
-INCBIN "res/npc/player/front_back/down_standing.chr"
-PlayerUpStandingTiles:
-INCBIN "res/npc/player/front_back/up_standing.chr"
