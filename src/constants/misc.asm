@@ -57,3 +57,6 @@ ENDM
     enum_elem TRIGTYPE_ASM
 
 NB_TRIGGERS equ $20 ; $100 / sizeof_Trigger
+
+
+CUTSCENE_STACK_NB_ENTRIES equ 10

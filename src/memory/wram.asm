@@ -122,14 +122,19 @@ wTilemapPtr::
 ENDU
 
 
-SECTION "Cutscene memory", WRAM0
+SECTION "Cutscene memory", WRAM0,ALIGN[8]
+
+wCutsceneStackPtr::
+    db
+wCutsceneStack::
+    ds 3 * CUTSCENE_STACK_NB_ENTRIES
 
 wCutscenePtr::
     dw
 wCutsceneBank::
     db
 
-wCutsceneResultValue::
+wCutsceneIME::
     db
 
 

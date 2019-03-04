@@ -1224,6 +1224,9 @@ OverworldStateBegin:
     xor a
     ld [wShadowOAM + 2], a
 
+    ; xor a
+    ld [wCutsceneStackPtr], a
+
     ; Player tiles will be loaded normally on first frame
     ; xor a
     ld [wPlayerTilesShifted], a
@@ -1559,14 +1562,12 @@ CheckMapTriggers:
     dw JumpToFarPtr
 
 .dispatchCutscene
-    ; TODO: stack
-    ld a, [hli]
-    ld [wCutsceneBank], a
-    ld a, [hli]
-    ld [wCutscenePtr], a
-    ld a, [hli]
-    ld [wCutscenePtr+1], a
-    ret
+    ld a, [wCutsceneIME]
+    and a
+    ret z
+    ld b, h
+    ld c, l
+    jp StartCutscene
 
 .dispatchWarp
     ld a, [hli]

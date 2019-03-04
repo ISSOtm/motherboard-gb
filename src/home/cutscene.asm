@@ -32,6 +32,9 @@ CutsceneFuncTable:
     dw UnhaltText
     dw CutsceneLoadMap
     dw CutsceneJump
+    dw CutsceneCall
+    dw CutsceneEI
+    dw CutsceneDI
 .end
 REPT $80 - (.end - CutsceneFuncTable) / 2
     dw CutsceneCommandError
@@ -68,8 +71,28 @@ ProcessCutscene::
 
 
 EndCutscene:
-    xor a
+    ld a, [wCutsceneStackPtr]
+    and a
+    jr nz, .return
+    ; Stack empty
+    ; xor a
     ld [wCutsceneBank], a
+    ret
+
+.return
+    ld l, a
+    ld h, HIGH(wCutsceneStackPtr)
+    ld de, wCutsceneBank
+    ld a, [hld]
+    ld [de], a
+    dec e ; dec de
+    ld a, [hld]
+    ld [de], a
+    dec e ; dec de
+    ld a, [hld]
+    ld [de], a
+    ld a, l
+    ld [wCutsceneStackPtr], a
     ret
 
 SetPlayerButtonMask:
@@ -399,6 +422,61 @@ CutsceneJump:
     dw .deref
     dw RPNExpressionError
     dw RPNExpressionError ; 16
+
+
+CutsceneCall:
+    ; Pointer reading is done below (from `de`), so advance the pointer instead
+    ld hl, wCutscenePtr+1
+    ld a, [hld]
+    ld c, [hl]
+    ld b, a
+    ld a, c
+    add a, 3
+    ld [hli], a
+    jr nc, .noCarry
+    inc [hl]
+.noCarry
+
+; Start a cutscene, or at least attempt to
+; @param bc A pointer to a far pointer to the cutscene to be started
+StartCutscene::
+    ld a, [wCutsceneBank]
+    and a
+    jr z, .starting
+    ld hl, wCutsceneStackPtr
+    ld l, [hl]
+    inc l ; inc hl
+    ld de, wCutscenePtr
+    ld a, [de]
+    ld [hli], a
+    inc de
+    ld a, [de]
+    ld [hli], a
+    inc de
+    ld a, [de]
+    ld [hl], a
+    ld a, l
+    ld [wCutsceneStackPtr], a
+    
+.starting
+    ld hl, wCutscenePtr
+    ld a, [bc]
+    ld [hld], a
+    inc bc
+    ld a, [bc]
+    ld [hld], a
+    inc bc
+    ld a, [bc]
+    ld [hl], a
+    ret
+
+CutsceneEI:
+    ld a, 1
+    db $06 ; ld b, imm8
+CutsceneDI:
+    xor a
+    ld [wCutsceneIME], a
+    ret
 
 
 PURGE read_bytecode_byte
