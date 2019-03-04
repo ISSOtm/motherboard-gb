@@ -60,6 +60,8 @@ ENDM
     enum_elem ERROR_TEXT_STACK_OVERFLOW
     enum_elem ERROR_BAD_CTRL_CHAR
     enum_elem ERROR_RPN_EXPRESSION
+    enum_elem ERROR_MENU_STACK_OVERFLOW
+    enum_elem ERROR_MENU_STACK_EMPTY
     enum_elem ERROR_UNKNOWN
 
 
@@ -113,3 +115,26 @@ ENDM
     enum_elem PLAYER_STATE_WALKING_UP
     enum_elem PLAYER_STATE_WALKING_LEFT
     enum_elem PLAYER_STATE_WALKING_RIGHT
+
+
+; Menu actions
+    enum_start
+    enum_elem MENU_ACTION_NONE
+    ; These are each button's default action
+    enum_elem MENU_ACTION_MOVE_DOWN
+    enum_elem MENU_ACTION_MOVE_UP
+    enum_elem MENU_ACTION_MOVE_LEFT
+    enum_elem MENU_ACTION_MOVE_RIGHT
+    enum_elem MENU_ACTION_NONE_START ; Placeholder since START shouldn't do anything
+    enum_elem MENU_ACTION_NONE_SELECT
+    enum_elem MENU_ACTION_CANCEL
+    enum_elem MENU_ACTION_VALIDATE
+    ; These can only be triggered manually
+    enum_elem MENU_ACTION_NEW_MENU ; Followed by a 3-byte pointer to the menu
+    enum_elem MENU_ACTION_INVALID ; Any action greater than this is invalid, and does nothing
+
+; Menu closing reasons
+    enum_start
+    enum_elem MENU_NOT_CLOSED
+    enum_elem MENU_CANCELLED
+    enum_elem MENU_VALIDATED

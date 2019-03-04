@@ -283,6 +283,36 @@ wPlayerLoadedTiles::
     dw
 
 
+SECTION "Menu system vars", WRAM0
+
+wNbMenus::
+    db
+
+MENU_ID = 0
+REPT MENU_STACK_CAPACITY
+MENU_ID_STR equs STRSUB("{MENU_ID}", 2, STRLEN("{MENU_ID}") - 1)
+    dstruct Menu, wMenu{MENU_ID_STR}
+MENU_ID = MENU_ID + 1
+    PURGE MENU_ID_STR
+ENDR
+PURGE MENU_ID
+
+; What action to take after processing the menu
+wMenuAction::
+    db ; Action type
+    ds 3 ; Action args
+
+; The reason why this menu should be closed
+wMenuClosingReason::
+    db
+; The reason why the last menu was closed
+wPreviousMenuClosingReason::
+    db
+; The item selected on the last menu that was closed
+wPreviousMenuItem::
+    db
+
+
 SECTION "VWF engine memory", WRAM0,ALIGN[4]
 
 ; Align these buffers to perhaps HDMA them?

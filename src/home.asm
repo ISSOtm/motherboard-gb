@@ -9,6 +9,7 @@ INCLUDE "home/sgb.asm"
 INCLUDE "home/raster_fx.asm"
 INCLUDE "home/unpb16.asm"
 INCLUDE "home/vwf.asm"
+INCLUDE "home/menus.asm"
 
 INCLUDE "home/overworld.asm"
 INCLUDE "home/load_map.asm"

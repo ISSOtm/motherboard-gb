@@ -28,6 +28,10 @@ TextCtrlCharError::
     handle_error ERROR_BAD_CTRL_CHAR
 RPNExpressionError::
     handle_error ERROR_RPN_EXPRESSION
+MenuStackOverflowError::
+    handle_error ERROR_MENU_STACK_OVERFLOW
+MenuStackEmptyError::
+    handle_error ERROR_MENU_STACK_EMPTY
 
 ; Perform minimal init, and jump to error handler in ROMX
 ErrorHandler:
@@ -593,6 +597,8 @@ ErrorStrings:
     dw .textStackOverflowStr
     dw .badCtrlCharStr
     dw .RPNExpressionError
+    dw .menuStackOverflowStr
+    dw .menuStackEmptyStr
 
     dw .unknownErrorStr
 
@@ -612,6 +618,10 @@ ErrorStrings:
     dstr "Bad ctrl char"
 .RPNExpressionError
     dstr "Bad RPN expression"
+.menuStackOverflowStr
+    dstr "Menu stack overflow"
+.menuStackEmptyStr
+    dstr "Menu stack empty"
 .unknownErrorStr
     dstr "Unk err $"
 
