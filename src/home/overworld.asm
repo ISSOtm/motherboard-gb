@@ -158,6 +158,7 @@ OverworldUpdate:
     ld a, [wCameramanID]
     cp NB_NPCS + 1 ; Plus player!
     jr nc, .fixedCamera
+    ld b, a
     ld a, [wScrollingType]
     add a, a
     add a, LOW(CameraDeltaFuncs)
@@ -1157,7 +1158,7 @@ CameraDeltaFuncs:
     dw GetVertNPCCameraDelta
 
 GetNPCCameraDelta:
-    ld a, [wCameramanID]
+    ld a, b
     swap a ; *16
     add a, LOW(wPlayer)
     ld l, a
