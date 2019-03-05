@@ -42,17 +42,11 @@ AddMenu::
     rst bankswitch
     ; Run init func
     ld a, [hli]
-    push hl
     ld h, [hl]
     ld l, a
     or h
-    jr z, .noInit
+    ret z
     rst call_hl
-.noInit
-    pop hl
-
-    pop af
-    rst bankswitch
     ret
 
 
@@ -66,9 +60,6 @@ ProcessMenus::
     and a
     ret z
     ld b, a
-
-    ldh a, [hCurROMBank]
-    push af
 
     ld hl, wMenu0
     ld de, sizeof_Menu
@@ -227,7 +218,7 @@ ProcessMenus::
     ; Check if this menu should close
     ld a, [wMenuClosingReason]
     and a
-    jr z, .dontClose
+    ret z ; jr z, .dontClose
     ld a, [hli]
     ld h, [hl]
     ld l, a
@@ -240,9 +231,6 @@ ProcessMenus::
     ld a, [wMenuClosingReason]
     ld [wPreviousMenuClosingReason], a
 .dontClose
-
-    pop af
-    rst bankswitch
     ret
 
 
