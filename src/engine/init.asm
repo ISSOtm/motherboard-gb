@@ -76,6 +76,9 @@ ENDR
 
     ; xor a
     ldh [hBGP], a
+
+    ; xor a
+    ld [wNbMenus], a
     ret
 
 
