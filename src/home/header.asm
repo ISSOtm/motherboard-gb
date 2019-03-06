@@ -76,9 +76,70 @@ ENDR
     ld [$ff00+c], a
 
 
+    ld a, (vVWFTiles - $8000) / 16
+    ld [wTextCurTile], a
+    ; ld a, (vVWFTiles - $8000) / 16
+    ld [wWrapTileID], a
+
+    xor a
+    ld [wTextCurPixel], a
+    ld [wTextCharset], a
+    ld [wNbNewlines], a
+    ld [wTextPaused], a
+    ld [wTextStackSize], a
+    ld hl, wTextTileBuffer
+    ld c, $20
+    ; xor a
+    rst memset_small
+
+    ld hl, _SCRN0 + 9 * SCRN_VX_B + 4
+    ld c, 12
+    ; xor a
+    call LCDMemsetSmall
+
+    ; xor a
+    ld [wTextLetterDelay], a
+    inc a ; ld a, 1
+    ld b, BANK(LicensedText)
+    ld hl, LicensedText
+    call PrintVWFText
+    ld hl, _SCRN0 + 8 * SCRN_VX_B + 2
+    call SetPenPosition
+    call PrintVWFChar
+    call DrawVWFChars
+
+    PUSHS
+SECTION "Licensed text", ROMX
+
+LicensedText:
+    dstr "NOT LICENSED BY NINTENDO"
+    POPS
+
+    ld a, $E4
+    ldh [hBGP], a
+    ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8000 | LCDCF_BG9800 | LCDCF_OBJOFF | LCDCF_BGON
+    ldh [hLCDC], a
+
+
+    ; Don't do SGB init if soft-resetting on a SGB
+    ldh a, [hIsSGB]
+    and a
+    jr nz, .skipSGBInit
     ld a, BANK(DoSGBSetup)
     rst bankswitch
     call DoSGBSetup
+    ; If we were on a SGB, then the init took some time: compensate by waiting less
+    ; Estimated time: 30 frames
+    ldh a, [hIsSGB]
+    and a
+    ld c, 30 frames
+    jr nz, .waitLicense
+.skipSGBInit
+    ld c, 60 frames
+.waitLicense
+    rst wait_vblank
+    dec c
+    jr nz, .waitLicense
 
     ; Clear rDIV to make the game more consistent with emulators even without the boot ROM
     ; (Would trigger an APU sequence if the APU was enabled at all)

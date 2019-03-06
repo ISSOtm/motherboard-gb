@@ -1256,15 +1256,6 @@ OverworldStateBegin:
     ; ld a, PAL_PACKT_ACTION_NONE
     ld [wPalettePacketAction], a
 
-    ; xor a
-    ld [wTextCurPixel], a
-    ld [wTextCharset], a
-    ld [wNbNewlines], a
-    ld [wTextPaused], a
-    ld hl, wTextTileBuffer
-    ld c, $20
-    ; xor a
-    rst memset_small
     dec a ; ld a, $FF
     ld [wTextSrcPtr+1], a
 
@@ -1284,9 +1275,6 @@ OverworldStateBegin:
 
     ld a, %00011110
     ldh [hTextboxBGP], a
-
-    ld a, (vVWFTiles - $8000) / 16
-    ld [wTextCurTile], a
 
     ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ16 | LCDCF_OBJON | LCDCF_BGON
     ldh [hLCDC], a

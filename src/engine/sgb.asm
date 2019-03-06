@@ -44,11 +44,6 @@ UnfreezeScreenPacket:
 ; The stuff in question takes a bunch of time, but we need to do it ASAP, basically
 ; Of course on a non-SGB system basically nothing will happen :D
 DoSGBSetup::
-    ; Don't do all this if soft-resetting on a SGB
-    ldh a, [hIsSGB]
-    and a
-    ret nz
-
     ; Request multiplayer mode, which a non-SGB device will ignore
     ld hl, TwoPlayersPacket
     call SendPackets
