@@ -87,7 +87,7 @@ StudioScreen::
     ldh [hLCDC], a
     ld a, %00011011
     ldh [hBGP], a
-    wait 60 frames
+    wait 2 seconds
 
 
 CopyrightScreen:
