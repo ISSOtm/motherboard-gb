@@ -23,12 +23,12 @@ MainMenuHeader:
     db BANK("Main menu data")
     dw MainMenuInit
     db PADF_A | PADF_DOWN | PADF_UP
-    db 0
+    db 0 ; Prevent repeat press
     dw 0, 0, 0, 0, 0, 0, 0, 0
-    db 0
-    db 1
-    db 0
-    db 2
+    db 0 ; "Previous item"
+    db 1 ; Allow wrapping
+    db 0 ; Default item
+    db 2 ; Size
     dw MainMenuRedraw
     dw MainMenuItems
     dw MainMenuClose
