@@ -53,7 +53,6 @@ LoadMap:
     ; Send computed packet
     ld hl, wSGBPacket
     push de
-    call SendPacketNoDelay
     ; Make the palettes reference all zeros to ensure the same color (#0) is shown
     ; This will be made consistent once fading in starts, since wFadePalettes has been modified accordingly
     xor a
@@ -448,6 +447,8 @@ ENDC
 
 
     ; Load map data
+    ldh a, [hCurROMBank]
+    push af
     ld de, wParallaxLayers + 2
     ld a, [wScrollingType]
     and 3
@@ -703,8 +704,6 @@ ENDC
     jp .scrollTypeDone
 
 .scrolling4Way
-    ldh a, [hCurROMBank]
-    push af
     ; We'll also need to redraw the tilemap
     ; We need the Y position (in tiles) to compute the vertical offset
     ; And the base pointer for obvious reasons
@@ -831,10 +830,10 @@ ENDC
     dec b
     jr nz, .nextRow
     pop hl
-    pop af
-    rst bankswitch
 
 .scrollTypeDone
+    pop af
+    rst bankswitch
     ; Just after the map header lie the "common tiles"
     ld a, [hli]
     ld b, a
