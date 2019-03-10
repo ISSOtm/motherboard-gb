@@ -249,4 +249,24 @@ Mult8x8::
     ret
 
 
+; Get the current language's string from an array
+; They must be in the order defined by the language enum
+; @param hl A pointer to an array of pointers to the strings
+; @return hl A pointer to the correct string
+; @return a LOW(hl)
+GetLanguageString::
+ f GetLanguageString
+    ld a, [wLanguage]
+    add a, a
+    add a, l
+    ld l, a
+    adc a, h
+    sub l
+    ld h, a
+    ld a, [hli]
+    ld h, [hl]
+    ld l, a
+    ret
+
+
 PURGE f
