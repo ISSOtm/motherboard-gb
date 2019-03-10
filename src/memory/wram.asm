@@ -31,6 +31,10 @@ wSPBuffer::
 ; This is ALIGN[3]
 
 
+wLanguage::
+    db
+
+
 SECTION "Title screen vars", WRAM0
 
 ; Which of the 4 frames of animation is currently being displayed

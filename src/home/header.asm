@@ -70,7 +70,7 @@ REPT 6
 ENDR
     and $0F
     cp b
-    jr z, CheckCRC
+    jp z, CheckCRC
 .skipCRC
     ld a, $30
     ld [$ff00+c], a
@@ -78,8 +78,6 @@ ENDR
 
     ld a, (vVWFTiles - $8000) / 16
     ld [wTextCurTile], a
-    ; ld a, (vVWFTiles - $8000) / 16
-    ld [wWrapTileID], a
 
     xor a
     ld [wTextCurPixel], a
@@ -100,6 +98,8 @@ ENDR
     ; xor a
     ld [wTextLetterDelay], a
     inc a ; ld a, 1
+    ld [wWrapTileID], a
+    ; ld a, 1
     ld b, BANK(LicensedText)
     ld hl, LicensedText
     call PrintVWFText
@@ -115,11 +115,21 @@ LicensedText:
     dstr "NOT LICENSED BY NINTENDO"
     POPS
 
-    ld a, $E4
-    ldh [hBGP], a
     ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8000 | LCDCF_BG9800 | LCDCF_OBJOFF | LCDCF_BGON
     ldh [hLCDC], a
-
+    ld hl, $2700
+    ld b, l ; ld b, 0
+.fadeIn
+    ld a, b
+    ldh [hBGP], a
+    wait 5 frames
+    ld a, h
+    add hl, hl
+    rr b
+    add hl, hl
+    rr b
+    and a
+    jr nz, .fadeIn
 
     ; Don't do SGB init if soft-resetting on a SGB
     ldh a, [hIsSGB]
@@ -128,6 +138,7 @@ LicensedText:
     ld a, BANK(DoSGBSetup)
     rst bankswitch
     call DoSGBSetup
+
     ; If we were on a SGB, then the init took some time: compensate by waiting less
     ; Estimated time: 30 frames
     ldh a, [hIsSGB]
@@ -141,6 +152,18 @@ LicensedText:
     dec c
     jr nz, .waitLicense
 
+    ld hl, hBGP
+    ld b, 4
+.fadeOut
+    scf
+    rr [hl]
+    scf 
+    rr [hl]
+    wait 5 frames
+    dec b
+    jr nz, .fadeOut
+
+
     ; Clear rDIV to make the game more consistent with emulators even without the boot ROM
     ; (Would trigger an APU sequence if the APU was enabled at all)
     xor a
@@ -153,6 +176,16 @@ LicensedText:
     ld a, BANK(StudioScreen)
     rst bankswitch
     call StudioScreen
+
+    ld b, BANK(LanguageMenuHeader)
+    ld de, LanguageMenuHeader
+    call AddMenu
+.processLanguageMenu
+    rst wait_vblank
+    call ProcessMenus
+    ld a, [wNbMenus]
+    and a
+    jr nz, .processLanguageMenu
 
     ld a, BANK(TitleScreen)
     rst bankswitch

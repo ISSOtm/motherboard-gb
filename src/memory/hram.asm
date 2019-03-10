@@ -150,6 +150,12 @@ hTriggerSearchedTypes::
 hTriggerFoundTypes::
     db
 
+NEXTU
+
+; Offset of the cursor in the language selection menu
+hLangSelMenuCursorPos::
+    db
+
 ENDU
 
 

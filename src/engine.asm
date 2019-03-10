@@ -4,6 +4,7 @@ INCLUDE "macros.asm"
 INCLUDE "engine/init.asm"
 INCLUDE "engine/sgb.asm"
 INCLUDE "engine/studio_screen.asm"
+INCLUDE "engine/language_menu.asm"
 INCLUDE "engine/title_screen.asm"
 INCLUDE "engine/main_menu.asm"
 

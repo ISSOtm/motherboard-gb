@@ -138,3 +138,11 @@ ENDM
     enum_elem MENU_NOT_CLOSED
     enum_elem MENU_CANCELLED
     enum_elem MENU_VALIDATED
+
+
+    enum_start
+    enum_elem LANGUAGE_ENGLISH
+    enum_elem LANGUAGE_SPANISH
+    enum_elem LANGUAGE_FRENCH
+    enum_elem LANGUAGE_JAPANESE
+    enum_elem NB_LANGUAGES
