@@ -291,3 +291,14 @@ MenuCancel:
 
 MenuDoNothing: ; Stub for menu actions that do nothing
     ret
+
+
+ForceMenuValidation::
+    ld a, MENU_ACTION_VALIDATE
+    ld [wMenuAction], a
+    ret
+ 
+PreventMenuAction::
+    xor a
+    ld [wMenuAction], a
+    ret
