@@ -90,10 +90,10 @@ ENDR
     ; xor a
     rst memset_small
 
-    ld hl, _SCRN0 + 9 * SCRN_VX_B + 4
-    ld c, 12
+    ld hl, _SCRN0
+    ld bc, SCRN_Y_B * SCRN_VX_B
     ; xor a
-    call LCDMemsetSmall
+    call LCDMemset
 
     ; xor a
     ld [wTextLetterDelay], a
