@@ -37,15 +37,34 @@ MainMenuHeader:
 SECTION "Main menu data", ROMX
 
 MainMenuInit:
-    ret
+    ld hl, _SCRN0
+    ld bc, SCRN_VX_B * SCRN_Y_B
+    xor a
+    call LCDMemset
+    ld hl, MainMenuItems
+    call GetLanguageString
+    xor a
+    ld [wTextLetterDelay], a
+    inc a ; ld a, 1
+    ld b, BANK(MainMenuItems)
+    call PrintVWFText
+    ld hl, _SCRN0 + 8 * SCRN_VX_B + 7
+    call SetPenPosition
+    call PrintVWFChar
+    ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8000 | LCDCF_BG9800 | LCDCF_OBJOFF | LCDCF_BGON
+    ldh [hLCDC], a
+    jp DrawVWFChars
 
 MainMenuRedraw:
     ret
 
 MainMenuItems:
-    db "New Game\n"
-    db "Options"
-    db 0
+    dw .en
+    dw .sp
+    dw .fr
+    dw .jp
+
+INCLUDE "res/text/main_menu.asm"
 
 MainMenuClose:
     ret
