@@ -68,7 +68,9 @@ rebuild:
 # `superfamiconv`: Converts images to SNES graphics format, used to encode the SGB border
 # To build SuperFamiconv here; not necessary if you already have one
 .PHONY: superfamiconv
-superfamiconv: $(SRCDIR)/tools/SuperFamiconv
+superfamiconv: $(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv
+
+$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv: $(SRCDIR)/tools/SuperFamiconv
 	cd $< && make
 
 # To clone SuperFamiconv's GitHub repo (only has to be done once)
