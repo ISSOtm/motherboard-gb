@@ -41,6 +41,10 @@ MainMenuInit:
     ld bc, SCRN_VX_B * SCRN_Y_B
     xor a
     call LCDMemset
+    dec a ; ld a, $FF
+    ldh [hScanlineFXBuffer1], a
+    ld a, LOW(hScanlineFXBuffer1)
+    ldh [hWhichScanlineBuffer], a
     ld hl, MainMenuItems
     call GetLanguageString
     xor a
