@@ -85,9 +85,6 @@ $(SRCDIR)/tools/SuperFamiconv:
 %.bit7.tilemap: src/tools/bit7ify.py %.tilemap
 	$^ $@
 
-$(SRCDIR)/constants/maps.asm: $(SRCDIR)/tools/gen_map_enum.py
-	$^
-
 
 INITTARGETS := $(SRCDIR)/constants/maps.asm
 
