@@ -118,7 +118,7 @@ StartDrawingText:
     ld [wTextLetterDelay], a
     ; ld a, 1 ; Flush the string
     call PrintVWFText
-    ldcoord hl, 1, 2, _SCRN1
+    ldcoord hl, 1, 2, vTextboxTilemap
     call SetPenPosition
     ld a, BANK(OpenTextbox)
     rst bankswitch

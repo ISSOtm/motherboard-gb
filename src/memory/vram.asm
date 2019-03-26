@@ -40,9 +40,12 @@ ENDU
 
 ; $9800
 
+vOverworldTilemap::
     ds SCRN_VX_B * SCRN_VY_B ; $400
 
 ; $9C00
 
+vWindowTilemap::
+    ds SCRN_VX_B * SCRN_Y_B ; $240
 vTextboxTilemap::
-    ds SCRN_VX_B * SCRN_VY_B ; $400
+    ds SCRN_VX_B * 4 ; $80

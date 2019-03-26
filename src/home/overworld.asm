@@ -411,7 +411,7 @@ OverworldUpdate:
     ld [$FF00+c], a
     inc c
     ; Write value (SCY value)
-    xor a
+    ld a, SCRN_Y
     sub b
     ld [$FF00+c], a
     inc c

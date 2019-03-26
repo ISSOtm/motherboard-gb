@@ -649,7 +649,7 @@ TextHalt:
 
 TextClear:
     push hl
-    ldcoord hl, 1, 2, _SCRN1
+    ldcoord hl, 1, 2, vTextboxTilemap
     ld bc, SCRN_X_B - 4
     call LCDMemsetSmallFromB
     ld l, LOW(SCRN_VX_B * 2 + 2)
@@ -665,7 +665,7 @@ TextClear:
     ; Reset position always, though
     xor a
     ld [wTextCurPixel], a
-    ldcoord hl, 1, 2, _SCRN1
+    ldcoord hl, 1, 2, vTextboxTilemap
     call SetPenPosition
 
     pop hl
