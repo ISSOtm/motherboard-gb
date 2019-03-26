@@ -16,5 +16,7 @@ deps/
 *.borderattr
 *.borderchr
 
-# Special files
+# Generated files
 dummy
+src/res/maps/*/*.asm
+src/constants/maps.asm
