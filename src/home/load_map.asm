@@ -53,6 +53,7 @@ LoadMap:
     ; Send computed packet
     ld hl, wSGBPacket
     push de
+    call SendPacketNoDelay
     ; Make the palettes reference all zeros to ensure the same color (#0) is shown
     ; This will be made consistent once fading in starts, since wFadePalettes has been modified accordingly
     xor a
