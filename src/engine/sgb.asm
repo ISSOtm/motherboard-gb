@@ -11,16 +11,14 @@ DisablePalettesPacket:
 
 NB_BORDER_TILES = 1
 CompressedBorderTiles:
-; TODO:
-; INCBIN "res/sgb/border.chr.pb16"
+;INCBIN "res/sgb/borders/tetbits.borderchr.pb16"
 TransferBorderTilesPacket:
     sgb_packet CHR_TRN, 1, %00 ; BG tiles, $00-7F
     ; A second packet might be needed if more than $80 tiles are transferred
 
 BORDER_ATTRIBUTE_SIZE = $880
 CompressedBorderAttributes:
-; TODO:
-; INCBIN "res/sgb/border.atr.pb16"
+;INCBIN "res/sgb/borders/tetbits.borderattr.pb16"
 TransferBorderAttributesPacket:
     sgb_packet PCT_TRN, 1
 

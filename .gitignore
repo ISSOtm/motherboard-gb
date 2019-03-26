@@ -11,6 +11,10 @@ deps/
 *.rar
 *.bin
 *.font
+*.bordermap
+*.borderpal
+*.borderattr
+*.borderchr
 
 # Special files
 dummy
