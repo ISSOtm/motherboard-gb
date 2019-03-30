@@ -1,6 +1,6 @@
 
 .SUFFIXES:
-.DEFAULTTARGET: all
+.DEFAULT_GOAL := all
 
 
 FillValue = 0xFF
@@ -48,6 +48,36 @@ ASMFILES := $(wildcard $(SRCDIR)/*.asm)
 
 
 
+# `superfamiconv`: Converts images to SNES graphics format, used to encode the SGB border
+# To build SuperFamiconv here; not necessary if you already have one
+superfamiconv: $(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv
+.PHONY: superfamiconv
+
+$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv: $(SRCDIR)/tools/SuperFamiconv
+	cd $< && make
+
+# To clone SuperFamiconv's GitHub repo (only has to be done once)
+$(SRCDIR)/tools/SuperFamiconv:
+	git clone https://github.com/Optiroc/SuperFamiconv.git $@
+
+
+# Define how to compress files (same recipe for any file)
+%.pb16: %
+	src/tools/pb16.py $< $@
+
+%.bit7.tilemap: src/tools/bit7ify.py %.tilemap
+	$^ $@
+
+
+INITTARGETS := $(SRCDIR)/constants/maps.asm
+
+# Include all resource Makefiles
+# This must be done before we include `$(DEPSDIR)/all` otherwise `dummy` has no prereqs
+# FIXME: This might cause empty recipes when conflicts arise? But that's invalid anyways: how do I fix this?
+include $(wildcard $(SRCDIR)/res/*/Makefile)
+
+
+
 # `all` (Default target): build the ROM
 all: $(BINDIR)/motherboard.gb
 .PHONY: all
@@ -83,16 +113,19 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.asm dummy
 	@mkdir -p $(DEPSDIR)
 	@mkdir -p $(OBJDIR)
 	set -e; \
-	$(RGBASM) -M $(DEPFILE).tmp $(ASFLAGS) -o $@ $<; \
-	sed 's,\($*\)\.o[ :]*,\1.o $(DEPFILE): ,g' < $(DEPFILE).tmp > $(DEPFILE); \
-	for line in $$(cut -d ":" -f 2 $(DEPFILE).tmp); do if [ "$$line" != "$<" ]; then echo "$$line: ;" >> $(DEPFILE); fi; done; \
-	rm $(DEPFILE).tmp
+	TMP_DEPFILE=$$(mktemp); \
+	$(RGBASM) -M $$TMP_DEPFILE $(ASFLAGS) -o $@ $<; \
+	sed 's,\($*\)\.o[ :]*,\1.o $(DEPFILE): ,g' < $$TMP_DEPFILE > $(DEPFILE); \
+	for line in $$(cut -d ":" -f 2 $$TMP_DEPFILE); do if [ "$$line" != "$<" ]; then echo "$$line: ;" >> $(DEPFILE); fi; done; \
+	rm $$TMP_DEPFILE
 
 # Include (and potentially remake) all dependency files
 # Remove duplicated recipes, hence using yet another file grouping everything
 $(DEPSDIR)/all: $(patsubst $(SRCDIR)/%.asm,$(DEPSDIR)/%.d,$(ASMFILES))
 	cat $^ | sort | uniq > $@
+ifneq ($(MAKECMDGOALS),clean)
 include $(DEPSDIR)/all
+endif
 
 
 # How to make the ROM
@@ -101,39 +134,12 @@ $(BINDIR)/motherboard.gb: $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
 
 	$(RGBASM) $(ASFLAGS) -o $(OBJDIR)/build_date.o $(SRCDIR)/res/build_date.asm
 
-	$(RGBLINK) $(LDFLAGS) -o $(BINDIR)/tmp.gb -m $(@:.gb=.map) -n $(@:.gb=.sym) $^ $(OBJDIR)/build_date.o
-	$(RGBFIX) $(FXFLAGS) $(BINDIR)/tmp.gb
-
-	src/tools/crcify.py $(BINDIR)/tmp.gb
-	$(RGBFIX) -v $(BINDIR)/tmp.gb
-
-	mv $(BINDIR)/tmp.gb $(BINDIR)/motherboard.gb
-
-
-
-# `superfamiconv`: Converts images to SNES graphics format, used to encode the SGB border
-# To build SuperFamiconv here; not necessary if you already have one
-superfamiconv: $(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv
-.PHONY: superfamiconv
-
-$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv: $(SRCDIR)/tools/SuperFamiconv
-	cd $< && make
-
-# To clone SuperFamiconv's GitHub repo (only has to be done once)
-$(SRCDIR)/tools/SuperFamiconv:
-	git clone https://github.com/Optiroc/SuperFamiconv.git $@
-
-
-# Define how to compress files (same recipe for any file)
-%.pb16: %
-	src/tools/pb16.py $< $@
-
-%.bit7.tilemap: src/tools/bit7ify.py %.tilemap
-	$^ $@
-
-
-INITTARGETS := $(SRCDIR)/constants/maps.asm
-
-# Include all resource Makefiles
-# Some of these are also present in $(DEPSDIR)/all, so this must be placed after to override them (otherwise we end up with empty recipes)
-include $(wildcard $(SRCDIR)/res/*/Makefile)
+	set -e; \
+	TMP_ROM=$$(mktemp); \
+	$(RGBLINK) $(LDFLAGS) -o $$TMP_ROM -m $(@:.gb=.map) -n $(@:.gb=.sym) $^ $(OBJDIR)/build_date.o; \
+	$(RGBFIX) $(FXFLAGS) $$TMP_ROM; \
+	\
+	src/tools/crcify.py $$TMP_ROM; \
+	$(RGBFIX) -v $$TMP_ROM; \
+	\
+	mv $$TMP_ROM $(BINDIR)/motherboard.gb
