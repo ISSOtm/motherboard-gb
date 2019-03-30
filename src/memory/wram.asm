@@ -55,10 +55,25 @@ SECTION "Map properties", WRAM0,ALIGN[8]
 ; The current map's properties
 wMapProperties::
 
+UNION
     dstruct NPC, wPlayer
-    dstruct NPC, wNPC1
+NEXTU
+    dstructs NB_NPCS, NPC, wNPC
+ENDU
 wNPCArrayEnd::
 
+wNPCSpeeds::
+    ds 4 * NB_NPCS
+
+
+; $XX40
+
+
+; Current map's gravity
+; Yes, there is "sideways" gravity, which may be used for wind effects
+wGravity::
+    dw
+    dw
 
 ; Currently loaded map's ID
 wLoadedMap::

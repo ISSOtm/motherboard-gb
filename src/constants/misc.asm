@@ -36,7 +36,7 @@ NB_PARALLAX_LAYERS equ 4
 NB_PLAYER_TILES equ 3 * 2 + 2 * 2 ; First row is 3 sprites, second is 2 sprites
 
 
-NB_NPCS equ 15
+NB_NPCS equ 15 + 1
 
 
 NB_FAST_COPY_REQS equ 16 ; Needs to be greater than the number of NPCs for map loading to go smoothly

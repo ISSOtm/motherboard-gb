@@ -2,6 +2,12 @@
 SECTION "Map loader", ROM0
 
 LoadMap:
+    ld hl, wNPCSpeeds
+    ld c, 4 * NB_NPCS
+    xor a
+    rst memset_small
+
+
     ;;; Load data from map header into RAM.
 
     ld a, BANK(MapHeaders)
@@ -238,10 +244,13 @@ LoadMap:
 .noNPCs
     ; Clear data for remaining NPCs
     ld a, e
-    cp LOW(wNPCArrayEnd)
+    and a ; cp LOW(wNPCArrayEnd)
     jr z, .allNPCsUsed
 .clearUnusedNPCs
     ld a, $80
+IF DEF(PedanticMemInit)
+    ld [de], a
+ENDC
     inc e ; inc de
 IF DEF(PedanticMemInit)
     ld [de], a
@@ -249,6 +258,9 @@ ENDC
     inc e ; inc de
     ld [de], a
     inc e ; inc de
+IF DEF(PedanticMemInit)
+    ld [de], a
+ENDC
     inc e ; inc de
 IF DEF(PedanticMemInit)
     ld [de], a
@@ -258,8 +270,8 @@ ENDC
     ld a, e
     add a, sizeof_NPC - (NPC_XPos + 1)
     ld e, a
-    cp LOW(wNPCArrayEnd)
-    jr c, .clearUnusedNPCs
+    ; cp LOW(wNPCArrayEnd)
+    jr nz, .clearUnusedNPCs
 .allNPCsUsed
 
 

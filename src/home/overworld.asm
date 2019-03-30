@@ -143,6 +143,44 @@ OverworldUpdate:
     and a
     jp z, OverworldLoop
 
+
+    ; Apply NPC movement speeds
+    ld hl, wNPC0
+    ld de, wNPCSpeeds
+.moveNPC
+    ld a, [de]
+    inc e ; inc de
+    add a, [hl]
+    ld [hli], a
+    ld a, [de]
+    ld c, a
+    inc e ; inc de
+    adc a, [hl]
+    ld [hli], a
+    ld b, a
+    adc a, [hl]
+    sla c ; Get sign of speed into carry
+    sbc b ; If speed was negative, we need to `add $FF`, which really is `sub 1`
+    ld [hli], a
+    ld a, [de]
+    inc e ; inc de
+    add a, [hl]
+    ld [hli], a
+    ld a, [de]
+    ld c, a
+    inc e ; inc de
+    adc a, [hl]
+    ld [hli], a
+    ld b, a
+    adc a, [hl]
+    sla c
+    sbc b
+    ld [hld], a
+    ld a, l
+    add a, sizeof_NPC - NPC_XPos
+    ld l, a
+    jr nz, .moveNPC
+
     
     ; Perform text updates here
     ; They can actually be considered updates, since they're async
