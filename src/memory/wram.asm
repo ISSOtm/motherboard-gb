@@ -296,6 +296,10 @@ PURGE TRIGGER_ID
 ; This is ALIGN[8]
 
 
+wMovementVector::
+    dw
+    dw
+
 wPlayerStateChange::
     db
 wPlayerLoadedTiles::

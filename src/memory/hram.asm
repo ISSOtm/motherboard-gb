@@ -156,6 +156,23 @@ NEXTU
 hLangSelMenuCursorPos::
     db
 
+NEXTU
+
+; Position of the hitbox that's being moved
+hMovementPosition::
+    ds 3
+    ds 3
+
+; Size of the hitbox that's being moved
+hMovementHitbox::
+    db
+    db
+
+; Bottom-right point of the hitbox that's being moved
+hMovementSecondPoint::
+    ds 2 ; ds 3
+    ds 3
+
 ENDU
 
 
