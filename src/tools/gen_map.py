@@ -235,5 +235,7 @@ for warpto in metadata["warp-tos"]:
     lines.append("\tdb ; Camera behavior\n")
     lines.append("\tdw {} ; Processor\n\n".format(warpto["processor"]))
 
+
+
 with open("{}/{}.asm".format(path.parent, path.stem), "wt") as f:
     f.writelines(lines)

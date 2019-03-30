@@ -132,7 +132,7 @@ LoadMap:
     ld bc, wFastCopyQueue
     xor a ; ld a, LOW(wFastCopyQueue)
     ; Forcefully set the low pointer of the copy request to remove the need for wrapping
-    ; Normally unsafe, but we should be safe to take liberties here
+    ; Normally unsafe, but we should be safe to take liberties here, since VBlank is disabled
     ldh [hFastCopyCurLowByte], a
     ld a, LOW(vNPCTiles / 16)
     ldh [hLoadingNPCBaseTileID], a
