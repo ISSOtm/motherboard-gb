@@ -34,9 +34,6 @@ INCBIN "res/sgb/palettes.bin.pb16"
 TransferPaletteFilesPacket:
     sgb_packet PAL_TRN, 1
 
-UnfreezeScreenPacket:
-    sgb_packet MASK_EN, 1, 0
-
 
 ; Sets up a ton of SGB-related stuff
 ; The stuff in question takes a bunch of time, but we need to do it ASAP, basically
