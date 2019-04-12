@@ -13,15 +13,15 @@
     "map_script": "VillageMapScript",
 
     "npcs": [
-        {"x": 298, "y": 128, "attr": 0, "name": "Bike", "processor": "EmptyFunc"}
+        {"x": 298, "y": 127, "attr": 0, "name": "Bike", "processor": "EmptyFunc"}
     ],
 
     "triggers": [
-        {"type": "btntrigger", "x": 200, "y": 128, "x_size": 32, "y_size": 1, "args": ["PADF_A", "TRIGTYPE_WARP", "MAP_WHITE_HOUSE", "0", "8 << 1"]}
+        {"type": "btntrigger", "x": 200, "y": 127, "x_size": 32, "y_size": 1, "args": ["PADF_A", "TRIGTYPE_WARP", "MAP_WHITE_HOUSE", "0", "8 << 1"]}
     ],
 
     "warp-tos": [
-        {"x": 218, "y": 128, "processor": "EmptyFunc"}
+        {"x": 218, "y": 127, "processor": "EmptyFunc"}
     ],
 
     "scroll_type": "SCROLLING_HORIZ",

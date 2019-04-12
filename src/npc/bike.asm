@@ -11,12 +11,12 @@ BikeLeftDraw:
 
 .frame0
     db 5
-    db -17, -9, 2, 0
-    db -16, -1, 4, 0
-    db -16, 7, 6, 0
-    db -27, 15, 8, 0
+    db -16, -9, 2, 0
+    db -15, -1, 4, 0
+    db -15, 7, 6, 0
+    db -26, 15, 8, 0
     ; This one is last because its topmost row of pixels is blank, so it's okay if it isn't displayed
-    db -16, -17, 0, 0
+    db -15, -17, 0, 0
 
 
 BikeTiles::

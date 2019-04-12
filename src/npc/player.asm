@@ -32,11 +32,11 @@ PlayerDownStandingDraw:
     dw PlayerDownStandingTiles
 PlayerDownStandingFrame:
     db 5
-    db -29, -12, 0, 0
-    db -29, -4, 2, 0
-    db -29, 4, 4, 0
-    db -13, -8, 6, 0
-    db -13, 0, 8, 0
+    db -28, -12, 0, 0
+    db -28, -4, 2, 0
+    db -28, 4, 4, 0
+    db -12, -8, 6, 0
+    db -12, 0, 8, 0
 
 
 PlayerUpStandingDraw:
@@ -47,11 +47,11 @@ PlayerUpStandingDraw:
     dw PlayerUpStandingTiles
 PlayerUpStandingFrame:
     db 5
-    db -29, -12, 0, 0
-    db -29, -4, 2, 0
-    db -29, 4, 4, 0
-    db -13, -8, 6, 0
-    db -13, 0, 8, 0
+    db -28, -12, 0, 0
+    db -28, -4, 2, 0
+    db -28, 4, 4, 0
+    db -12, -8, 6, 0
+    db -12, 0, 8, 0
 
 
 PlayerLeftStandingDraw:
@@ -62,11 +62,11 @@ PlayerLeftStandingDraw:
     dw PlayerSideStandingTiles
 .frame0
     db 5 ; Number of OAM entries
-    db -29, -12, 4, OAMF_XFLIP
-    db -29, -4, 2, OAMF_XFLIP
-    db -29, 4, 0, OAMF_XFLIP
-    db -13, -8, 8, OAMF_XFLIP
-    db -13, 0, 6, OAMF_XFLIP
+    db -28, -12, 4, OAMF_XFLIP
+    db -28, -4, 2, OAMF_XFLIP
+    db -28, 4, 0, OAMF_XFLIP
+    db -12, -8, 8, OAMF_XFLIP
+    db -12, 0, 6, OAMF_XFLIP
 
 
 PlayerRightStandingDraw:
@@ -77,11 +77,11 @@ PlayerRightStandingDraw:
     dw PlayerSideStandingTiles
 .frame0
     db 5
-    db -29, -12, 0, 0
-    db -29, -4, 2, 0
-    db -29, 4, 4, 0
-    db -13, -8, 6, 0
-    db -13, 0, 8, 0
+    db -28, -12, 0, 0
+    db -28, -4, 2, 0
+    db -28, 4, 4, 0
+    db -12, -8, 6, 0
+    db -12, 0, 8, 0
 
 
 PlayerDownWalkingDraw:
@@ -98,20 +98,20 @@ PlayerDownWalkingDraw:
     dw PlayerDownWalkingTiles
 .frame0
     db 5
-    db -28, -12, 0, 0
-    db -28, -4, 2, 0
-    db -28, 4, 4, 0
-    db -12, -8, 6, 0
-    db -12, 0, 8, 0
+    db -27, -12, 0, 0
+    db -27, -4, 2, 0
+    db -27, 4, 4, 0
+    db -11, -8, 6, 0
+    db -11, 0, 8, 0
 
     dw PlayerDownWalkingTiles
 .frame1
     db 5
-    db -28, -13, 4, OAMF_XFLIP
-    db -28, -5, 2, OAMF_XFLIP
-    db -28, 3, 0, OAMF_XFLIP
-    db -12, -9, 8, OAMF_XFLIP
-    db -12, -1, 6, OAMF_XFLIP
+    db -27, -13, 4, OAMF_XFLIP
+    db -27, -5, 2, OAMF_XFLIP
+    db -27, 3, 0, OAMF_XFLIP
+    db -11, -9, 8, OAMF_XFLIP
+    db -11, -1, 6, OAMF_XFLIP
 
 
 PlayerUpWalkingDraw:
@@ -128,20 +128,20 @@ PlayerUpWalkingDraw:
     dw PlayerUpWalkingTiles
 .frame0
     db 5
-    db -28, -12, 0, 0
-    db -28, -4, 2, 0
-    db -28, 4, 4, 0
-    db -12, -8, 6, 0
-    db -12, 0, 8, 0
+    db -27, -12, 0, 0
+    db -27, -4, 2, 0
+    db -27, 4, 4, 0
+    db -11, -8, 6, 0
+    db -11, 0, 8, 0
 
     dw PlayerUpWalkingTiles
 .frame1
     db 5
-    db -28, -13, 4, OAMF_XFLIP
-    db -28, -5, 2, OAMF_XFLIP
-    db -28, 3, 0, OAMF_XFLIP
-    db -12, -9, 8, OAMF_XFLIP
-    db -12, -1, 6, OAMF_XFLIP
+    db -27, -13, 4, OAMF_XFLIP
+    db -27, -5, 2, OAMF_XFLIP
+    db -27, 3, 0, OAMF_XFLIP
+    db -11, -9, 8, OAMF_XFLIP
+    db -11, -1, 6, OAMF_XFLIP
 
 
 PlayerLeftWalkingDraw:
@@ -158,29 +158,29 @@ PlayerLeftWalkingDraw:
     dw PlayerSideWalkingTiles0
 .frame0
     db 5 ; Number of OAM entries
-    db -29, -12, 4, OAMF_XFLIP
-    db -29, -4, 2, OAMF_XFLIP
-    db -29, 4, 0, OAMF_XFLIP
-    db -13, -8, 8, OAMF_XFLIP
-    db -13, 0, 6, OAMF_XFLIP
+    db -28, -12, 4, OAMF_XFLIP
+    db -28, -4, 2, OAMF_XFLIP
+    db -28, 4, 0, OAMF_XFLIP
+    db -12, -8, 8, OAMF_XFLIP
+    db -12, 0, 6, OAMF_XFLIP
 
     dw PlayerSideWalkingTiles1
 .frame1
     db 5 ; Number of OAM entries
-    db -28, -12, 4, OAMF_XFLIP
-    db -28, -4, 2, OAMF_XFLIP
-    db -28, 4, 0, OAMF_XFLIP
-    db -12, -8, 8, OAMF_XFLIP
-    db -12, 0, 6, OAMF_XFLIP
+    db -27, -12, 4, OAMF_XFLIP
+    db -27, -4, 2, OAMF_XFLIP
+    db -27, 4, 0, OAMF_XFLIP
+    db -11, -8, 8, OAMF_XFLIP
+    db -11, 0, 6, OAMF_XFLIP
 
     dw PlayerSideWalkingTiles2
 .frame2
     db 5 ; Number of OAM entries
-    db -28, -12, 4, OAMF_XFLIP
-    db -28, -4, 2, OAMF_XFLIP
-    db -28, 4, 0, OAMF_XFLIP
-    db -12, -8, 8, OAMF_XFLIP
-    db -12, 0, 6, OAMF_XFLIP
+    db -27, -12, 4, OAMF_XFLIP
+    db -27, -4, 2, OAMF_XFLIP
+    db -27, 4, 0, OAMF_XFLIP
+    db -11, -8, 8, OAMF_XFLIP
+    db -11, 0, 6, OAMF_XFLIP
 
 
 PlayerRightWalkingDraw:
@@ -197,29 +197,29 @@ PlayerRightWalkingDraw:
     dw PlayerSideWalkingTiles0
 .frame0
     db 5
-    db -29, -12, 0, 0
-    db -29, -4, 2, 0
-    db -29, 4, 4, 0
-    db -13, -8, 6, 0
-    db -13, 0, 8, 0
+    db -28, -12, 0, 0
+    db -28, -4, 2, 0
+    db -28, 4, 4, 0
+    db -12, -8, 6, 0
+    db -12, 0, 8, 0
 
     dw PlayerSideWalkingTiles1
 .frame1
     db 5
-    db -28, -12, 0, 0
-    db -28, -4, 2, 0
-    db -28, 4, 4, 0
-    db -12, -8, 6, 0
-    db -12, 0, 8, 0
+    db -27, -12, 0, 0
+    db -27, -4, 2, 0
+    db -27, 4, 4, 0
+    db -11, -8, 6, 0
+    db -11, 0, 8, 0
 
     dw PlayerSideWalkingTiles2
 .frame2
     db 5
-    db -28, -12, 0, 0
-    db -28, -4, 2, 0
-    db -28, 4, 4, 0
-    db -12, -8, 6, 0
-    db -12, 0, 8, 0
+    db -27, -12, 0, 0
+    db -27, -4, 2, 0
+    db -27, 4, 4, 0
+    db -11, -8, 6, 0
+    db -11, 0, 8, 0
 
 
 SECTION "Player tiles", ROMX

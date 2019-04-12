@@ -1328,7 +1328,7 @@ OverworldStateBegin:
     ld de, .player
     ld c, sizeof_NPC
     rst memcpy_small
-    
+
     ld hl, wCameraXPos+1
     dec a ; ld a, $FF
     ld [hld], a
@@ -1350,7 +1350,7 @@ OverworldStateBegin:
     jp ROMbankswitch
 
 ; .player
-    dstruct NPC, .player, 0, $80, 0, $F1, PLAYER_STATE_STANDING_RIGHT, 0, 4, 0, BANK(PlayerDrawPtrs), PlayerDrawPtrs, 0, EmptyFunc
+    dstruct NPC, .player, 0, $7F, 0, $F1, PLAYER_STATE_STANDING_RIGHT, 0, 4, 0, BANK(PlayerDrawPtrs), PlayerDrawPtrs, 0, EmptyFunc
 
 
 OverworldStateFadeIn:
@@ -1639,7 +1639,7 @@ MovePlayerUp:
 
     ld hl, wPlayerStateChange
     set UP_HELD, [hl]
-    
+
     ld hl, wPlayer_YPos
     dec [hl]
     ld a, [hli]

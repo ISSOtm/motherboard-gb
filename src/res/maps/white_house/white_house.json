@@ -15,11 +15,11 @@
     "npcs": [],
 
     "triggers": [
-        {"type": "coordscript", "x": 68, "y": 149, "x_size": 58, "y_size": 1, "args": ["TRIGTYPE_WARP", "MAP_VILLAGE", "0", "8 << 1"]}
+        {"type": "coordscript", "x": 68, "y": 148, "x_size": 58, "y_size": 1, "args": ["TRIGTYPE_WARP", "MAP_VILLAGE", "0", "8 << 1"]}
     ],
 
     "warp-tos": [
-        {"x": 79, "y": 148, "processor": "EmptyFunc"}
+        {"x": 79, "y": 147, "processor": "EmptyFunc"}
     ],
 
     "scroll_type": "SCROLLING_4_WAY"
