@@ -55,6 +55,7 @@ SECTION "Map properties", WRAM0,ALIGN[8]
 ; The current map's properties
 wMapProperties::
 
+; The NPC array must be in a single 256-byte page
 UNION
     dstruct NPC, wPlayer
 NEXTU
@@ -296,7 +297,7 @@ PURGE TRIGGER_ID
 ; This is ALIGN[8]
 
 
-wMovementVector::
+wMovementVector:: ; Requires same high byte
     dw
     dw
 

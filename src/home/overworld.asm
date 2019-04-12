@@ -150,38 +150,77 @@ OverworldUpdate:
 .moveNPC
     ld a, [de]
     inc e ; inc de
-    add a, [hl]
-    ld [hli], a
-    ld a, [de]
+    ld [wMovementVector], a
     ld c, a
-    inc e ; inc de
-    adc a, [hl]
-    ld [hli], a
-    ld b, a
-    adc a, [hl]
-    sla c ; Get sign of speed into carry
-    sbc b ; If speed was negative, we need to `add $FF`, which really is `sub 1`
-    ld [hli], a
     ld a, [de]
     inc e ; inc de
-    add a, [hl]
-    ld [hli], a
-    ld a, [de]
+    ld [wMovementVector+1], a
+    or c
     ld c, a
+    ld a, [de]
     inc e ; inc de
-    adc a, [hl]
+    ld [wMovementVector+2], a
+    or c
+    ld c, a
+    ld a, [de]
+    inc e ; inc de
+    ld [wMovementVector+3], a
+    or c
+    ld c, sizeof_NPC
+    jr z, .skipMoving ; As collision is really taxing, don't check collision on entities that aren't moving
+    push de
+
+    push hl
+    ; FIXME: hitbox position and size are currently hardcoded
+    ld a, [hli]
+    ldh [hMovementPosition], a
+    ld a, [hli]
+    sub 18
+    ldh [hMovementPosition+1], a
+    ld a, [hli]
+    sbc 0
+    ldh [hMovementPosition+2], a
+    ld a, [hli]
+    ldh [hMovementPosition+3], a
+    ld a, [hli]
+    sub 6
+    ldh [hMovementPosition+4], a
+    ld a, [hli]
+    sbc 0
+    ldh [hMovementPosition+5], a
+
+    ld a, 16
+    ldh [hMovementHitbox], a
+    ld a, 12
+    ldh [hMovementHitbox + 1], a
+
+    call DoCollisionMovement
+    pop hl
+    pop de
+    ldh a, [hMovementPosition]
     ld [hli], a
-    ld b, a
-    adc a, [hl]
-    sla c
-    sbc b
-    ld [hld], a
+    ldh a, [hMovementPosition+1]
+    add 18
+    ld [hli], a
+    ldh a, [hMovementPosition+2]
+    adc 0
+    ld [hli], a
+    ldh a, [hMovementPosition+3]
+    ld [hli], a
+    ldh a, [hMovementPosition+4]
+    add 6
+    ld [hli], a
+    ldh a, [hMovementPosition+5]
+    adc 0
+    ld [hli], a
+    ld c, sizeof_NPC - NPC_DisplayType
+.skipMoving
     ld a, l
-    add a, sizeof_NPC - NPC_XPos
+    add a, c
     ld l, a
     jr nz, .moveNPC
 
-    
+
     ; Perform text updates here
     ; They can actually be considered updates, since they're async
     ld a, [wTextSrcPtr+1]

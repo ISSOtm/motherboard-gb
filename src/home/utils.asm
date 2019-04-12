@@ -269,4 +269,93 @@ GetLanguageString::
     ret
 
 
+; Move a point according to the current map's collision
+; Uses a dichotomy approach to mitigate coordinate asymmetry and reduce computations
+; NOTE: All parameters are fixed-point integer pairs
+; WARNING: This code may function unexpectedly for movement vectors greater than 4 pixels, please enforce speed caps thx
+; @param hMovementPosition The point to be moved (16.8 pair)
+; @param hMovementHitbox The size of the point's hitbox (8.0 pair)
+; @param wMovementVector The movement to be applied to the point (8.8 pair)
+; @return hMovementPosition The new (valid) position for the point to be moved
+DoCollisionMovement::
+ f DoCollisionMovement
+    ; 1/2
+    call .halveVector
+    call .tryMoving
+    ; 1/2 + 1/4
+    call .halveVector
+    call .tryMoving
+
+    ; 1/2 + 1/4 + 1/4
+.tryMoving
+    ld hl, wMovementVector
+    ld c, LOW(hMovementPosition)
+    call .applyMovement
+    call .collision
+    ld hl, wMovementVector
+    ld c, LOW(hMovementPosition)
+    call c, .revertMovement
+    ld hl, wMovementVector + 2
+    ld c, LOW(hMovementPosition + 3)
+    call .applyMovement
+    call .collision
+    ret nc
+    ld hl, wMovementVector + 2
+    ld c, LOW(hMovementPosition + 3)
+.revertMovement
+    ldh a, [c]
+    sub a, [hl]
+    ldh [c], a
+    inc l ; inc hl
+    inc c
+    ld b, [hl]
+    ldh a, [c]
+    sbc a, b
+    ldh [c], a
+    inc c
+    ldh a, [c]
+    sbc a, 0
+    rl b
+    adc a, 0
+    ldh [c], a
+    ret
+
+.applyMovement
+    ldh a, [c]
+    add a, [hl]
+    ldh [c], a
+    inc l ; inc hl
+    inc c
+    ld b, [hl]
+    ldh a, [c]
+    adc a, b
+    ldh [c], a
+    inc c
+    ldh a, [c]
+    adc a, 0
+    rl b
+    sbc a, 0
+    ldh [c], a
+    ret
+
+.collision
+    ; TODO:
+    and a
+    ret
+
+
+.halveVector
+    ld hl, wMovementVector + 3
+    sra [hl]
+    dec hl
+    rr [hl]
+
+    dec hl
+    sra [hl]
+    dec hl
+    rr [hl]
+    ret
+
+
+
 PURGE f
