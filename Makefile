@@ -124,7 +124,8 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.asm dummy
 $(DEPSDIR)/all: $(patsubst $(SRCDIR)/%.asm,$(DEPSDIR)/%.d,$(ASMFILES))
 	cat $^ | sort | uniq > $@
 ifneq ($(MAKECMDGOALS),clean)
-include $(DEPSDIR)/all
+%: force
+	@$(MAKE) -f $(DEPSDIR)/all $@
 endif
 
 
