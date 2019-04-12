@@ -8,17 +8,22 @@ rst00:
     nop
     jp NullExecError
 
-SECTION "rst08", ROM0[$0008]
-; Please call using `rst memcpy_small`
-; Copies c bytes of data from de to hl
-MemcpySmall:
-    ld a, [de]
-    ld [hli], a
-    inc de
-    dec c
-    jr nz, MemcpySmall
-EmptyFunc::
-    ret
+SECTION "rst08", ROM0[$0005]
+; Jump to the pointer at `hl`
+JumpToPtr::
+    ld a, [hli]
+    ld h, [hl]
+    ld l, a
+
+; Please call using `rst call_hl`
+; Jumps to hl. Use as a placeholder for `call hl`!
+; Will error out if the target is in RAM
+CallHL:
+    bit 7, h ; Prevent jumping into RAM (doesn't protec against returning to it, but hey :D)
+    jr nz, .err
+    jp hl
+.err
+    jp HLJumpingError
 
 SECTION "rst10", ROM0[$0010]
 ; Please call using `rst memset_small`
@@ -56,15 +61,16 @@ ROMbankswitch:
     ret
 
 SECTION "rst28", ROM0[$0028]
-; Please call using `rst call_hl`
-; Jumps to hl. Use as a placeholder for `call hl`!
-; Will error out if the target is in RAM
-CallHL:
-    bit 7, h ; Prevent jumping into RAM (doesn't protec against returning to it, but hey :D)
-    jr nz, .err
-    jp hl
-.err
-    jp HLJumpingError
+; Please call using `rst memcpy_small`
+; Copies c bytes of data from de to hl
+MemcpySmall:
+    ld a, [de]
+    ld [hli], a
+    inc de
+    dec c
+    jr nz, MemcpySmall
+EmptyFunc::
+    ret
 
 SECTION "rst30", ROM0[$0030]
 ; Please call using `rst wait_vblank`
@@ -107,18 +113,17 @@ ENDM
 
     ; Timer
     reti
+    ds 3 ; Reserved for timer int
 
 ; Fit in a 7-byte function, too!
+; Although 3 of the bytes have been moved away, which leaves room for a potential timer interrupt
 
 ; Jumps at the function specified by a far pointer
 ; @param hl A pointer to the far pointer in question; format: 1 byte: bank, 2 bytes LE: ptr
 JumpToFarPtr::
     ld a, [hli]
     rst bankswitch
-    ld a, [hli]
-    ld h, [hl]
-    ld l, a
-    jr CallHL
+    jr JumpToPtr
 
     ; Serial
     reti
@@ -205,7 +210,7 @@ LCDHandler:
     ; It was initially planned for JP diacritics.
     ; If for whatever reason, you need to re-activate this feature...
     ; ...uncomment this, and remove "LCDCF_OBJON" from above.
-    ; 
+    ;
     ; ; Perform OAM DMA to get textbox's sprites
     ; ; Luckily, sprites are hidden during DMA
     ; ; Also no sprites should be present on the textbox 1st row, hiding our trickery >:P
