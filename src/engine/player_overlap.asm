@@ -4,7 +4,7 @@
 ; If you, poor soul, must debug or change something in this file, know that I am extremely sorry.
 ; May K&R have mercy on your soul.
 
-SECTION "Player overlap functions", ROMX,ALIGN[4]
+SECTION "Player overlap functions", ROMX,ALIGN[8]
 
 PlayerOverlapFuncs::
     dw ShiftPlayerBodyOnly
