@@ -69,6 +69,7 @@ $(SRCDIR)/tools/SuperFamiconv:
 	$^ $@
 
 
+CLEANTARGETS := $(BINDIR) $(DEPSDIR) $(OBJDIR) dummy $(SRCDIR)/constants/maps.asm # The list of things that must be cleared; expanded by the resource Makefiles
 INITTARGETS := $(SRCDIR)/constants/maps.asm
 
 # Include all resource Makefiles
@@ -83,7 +84,6 @@ all: $(BINDIR)/motherboard.gb
 .PHONY: all
 
 # `clean`: Clean temp and bin files
-CLEANTARGETS := $(BINDIR) $(DEPSDIR) $(OBJDIR) dummy $(SRCDIR)/constants/maps.asm # The list of things that must be cleared; expanded by the resource Makefiles
 clean:
 	-rm -rf $(CLEANTARGETS)
 .PHONY: clean
@@ -106,6 +106,8 @@ dummy: $(INITTARGETS)
 # > This would cause the first compilation to never finish, thus Make never knows to build the binary files, thus deadlocking everything.
 # Compiling also generates dependency files!
 # Also add all obj dependencies to the deps file too, so Make knows to remake it
+# RGBDS is stupid, so dependency files cannot be generated if obj files aren't,
+#  so if a dep file is missing but an obj is there, we need to delete the object and start over
 $(DEPSDIR)/%.d: $(OBJDIR)/%.o ;
 
 $(OBJDIR)/%.o: DEPFILE = $(DEPSDIR)/$*.d
@@ -121,11 +123,14 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.asm dummy
 
 # Include (and potentially remake) all dependency files
 # Remove duplicated recipes, hence using yet another file grouping everything
+# Also filter out lines already defined in the resource Makefiles because defining two rules for the same file causes Bad Things(tm)
+SPACE :=
+SPACE +=
+# Yes this "space" hack is NEEDED. I don't like where I'm going anymore, either
 $(DEPSDIR)/all: $(patsubst $(SRCDIR)/%.asm,$(DEPSDIR)/%.d,$(ASMFILES))
-	cat $^ | sort | uniq > $@
+	cat $^ | sort | uniq | grep -vE "^($(subst .,\\.,$(subst $(SPACE),|,$(strip $(INITTARGETS))))): ;" > $@
 ifneq ($(MAKECMDGOALS),clean)
-%: force
-	@$(MAKE) -f $(DEPSDIR)/all $@
+include $(DEPSDIR)/all
 endif
 
 
