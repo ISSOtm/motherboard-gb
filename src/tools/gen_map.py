@@ -80,7 +80,7 @@ if metadata["scroll_type"] == "SCROLLING_HORIZ":
     # Tiles are laid out in a simple way:
     # First, all shared tiles in a single block
     # Then, the location where tiles will be loaded as rows are retraced
-    shared_tile_ids = [] # IDs in the 
+    shared_tile_ids = [] # IDs in the
     cur_tile = 128
 
     # Compute all "shared" tiles
@@ -188,6 +188,54 @@ assert nb_shared_tiles < 256, "Maps cannot load more than 256 tiles!"
 assert len(metadata["warp-tos"]) <= 16, "Maps cannot have more than 16 warp-to points!"
 
 
+# True = pass, False = don't pass
+collision_mappings = [
+    [  [True] * 8 ] * 8,
+    [ [False] * 8 ] * 8
+]
+collision_map = []
+x = 0
+y = 0
+with Image.open("{}/{}".format(path.parent, metadata["collision_file"])) as collision_img:
+    coll_width,coll_height = collision_img.size
+    assert coll_width % 8 == 0,  "Collision image width ({}) must be a multiple of 8!".format(coll_width)
+    assert coll_height % 8 == 0, "Collision image height ({}) must be a multiple of 8!".format(coll_height)
+    assert coll_width // 8 == width // 8,   "Map width ({}) doesn't match collision image width ({})".format(width, coll_width)
+    assert coll_height // 8 == height // 8, "Map height ({}) doesn't match collision image height ({})".format(height, coll_height)
+
+    for tx in range(coll_width // 8):
+        collision_row = []
+        for ty in range(coll_height // 8):
+            mapping = []
+            for y in range(8):
+                row = []
+                for x in range(8):
+                    row.append(collision_img.getpixel((tx * 8 + x, ty * 8 + y)) == (0, 0, 0, 0))
+                mapping.append(row)
+            # If mapping is already in list, use its index, otherwise
+            try:
+                mapping_id = collision_mappings.index(mapping)
+            except ValueError:
+                mapping_id = len(collision_mappings)
+                collision_mappings.append(mapping)
+            collision_row.append(mapping_id)
+        collision_map.append(collision_row)
+
+assert len(collision_mappings) <= 256 // 8 + 2, "Too many mappings! ({} > {})".format(len(collision_mappings), 256 // 8 + 2)
+# Convert mappings to binary numbers
+processed_mappings = []
+for mapping in collision_mappings[2:]:
+    processed_mapping = []
+    for row in mapping:
+        processed_row = 0
+        for bit in row:
+            processed_row <<= 1
+            if not bit:
+                processed_row |= 1
+        processed_mapping.append(str(processed_row))
+    processed_mappings.append(processed_mapping)
+
+
 # Write the metadata
 lines = ["; This is auto-generated ASM. Be careful if hand-modifying it.\n; ~ gen_map.py\n\n"]
 lines.append("\tdb {} ; DMG BGP\n".format(int(metadata["bgp"], 2)))
@@ -196,6 +244,16 @@ lines.append("\tdw {} ; SGB palettes\n".format(", ".join(map(str, metadata["sgb"
 lines.append("\tdb $80 | {} ; SGB attribute file number\n".format(metadata["sgb"]["attr_file"]))
 lines.append("\tdw {}, {} ; Height, width\n".format(height,width))
 lines.append("\tdbankw {} ; Map script pointer\n".format(metadata["map_script"]))
+
+lines.append("\tdb HIGH({}CollisionMappings)\n".format(path.stem))
+lines.append("\tdbankw {}CollisionData\n".format(path.stem))
+lines.append("\tPUSHS\n")
+lines.append("SECTION \"{} map collision data\", ROMX,ALIGN[8]\n".format(path.stem))
+lines.append("{}CollisionMappings:\n".format(path.stem))
+lines.extend([ "\tdb {}\n".format(", ".join(mapping))  for mapping in processed_mappings ])
+lines.append("{}CollisionData:\n".format(path.stem))
+lines.extend([ "\tdb {}\n".format(", ".join(map(str, col)))  for col in collision_map ])
+lines.append("\tPOPS\n")
 
 lines.append("\n\tdb {} ; Number of NPCs\n".format(len(metadata["npcs"])))
 for npc in metadata["npcs"]:

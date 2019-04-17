@@ -11,6 +11,7 @@
         "attr_file": 1
     },
     "map_script": "NULL",
+    "collision_file": "collision.png",
 
     "npcs": [],
 

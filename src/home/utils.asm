@@ -279,15 +279,66 @@ GetLanguageString::
 ; @return hMovementPosition The new (valid) position for the point to be moved
 DoCollisionMovement::
  f DoCollisionMovement
+    ld a, [wMapCollisionPtr]
+    rst bankswitch
+
+    ; Compute active colliders
+    ; ABCD being clockwise-ordered vertices, mapping is AC00 00BD
+    ld a, [wMovementVector+1] ; Y high
+    add a, a
+    ld a, %10000010
+    jr c, .movingUpwards
+    jr nz, .movingDownwards
+    ld a, [wMovementVector] ; Y low
+    and a
+    jr z, .noVertMovement
+.movingDownwards
+    ld a, %01000001
+.movingUpwards
+.noVertMovement ; Jumping here with a = 0
+    ld b, a
+
+    ld a, [wMovementVector+3] ; X high
+    add a, a
+    ld a, %10000001
+    jr c, .movingLeftwards
+    jr nz, .movingRightwards
+    ld a, [wMovementVector+2]
+    and a
+    jr z, .noHorizMovement
+.movingRightwards
+    ld a, %01000010
+.movingLeftwards
+.noHorizMovement
+    or b
+    ret z ; If no active colliders, return immediately without moving
+    ldh [hActiveColliders], a
+
     ; 1/2
-    call .halveVector
+    ld hl, wMovementVector + 3
+    sra [hl]
+    dec l ; dec hl
+    rr [hl]
+    dec l ; dec hl
+    sra [hl]
+    dec l ; dec hl
+    rr [hl]
     call .tryMoving
+
     ; 1/2 + 1/4
-    call .halveVector
+    ld hl, wMovementVector + 3
+    sra [hl]
+    dec l ; dec hl
+    rr [hl]
+    dec l ; dec hl
+    sra [hl]
+    dec l ; dec hl
+    rr [hl]
     call .tryMoving
 
     ; 1/2 + 1/4 + 1/4
 .tryMoving
+    ; TODO: skip collision step when staying within the same pixel
     ld hl, wMovementVector
     ld c, LOW(hMovementPosition)
     call .applyMovement
@@ -338,22 +389,243 @@ DoCollisionMovement::
     ldh [c], a
     ret
 
+
 .collision
-    ; TODO:
-    and a
-    ret
+    ; Algorithm:
+    ; Get mapping ID at base + TILE(height) * TILE(x) + TILE(y)
+    ; Get mapping byte
+    ; Shift mapping byte and return
+    ; `TILE(n)` means `n // 8`
 
+    ; Get TILE(x)
+    ldh a, [hMovementPosition+5]
+    rra
+    ld h, a
+    ldh a, [hMovementPosition+4]
+    ld c, a ; Preserved by mult for later
+    rra
+REPT 2
+    srl h
+    rra
+ENDR
+    ; Multiply by TILE(height)
+    ld e, a ; Mult param 1 (preserved, not that we care)
+    ldh a, [hMapHeight]
+    ld h, a ; Mult param 2
+    call Mult8x8
+    ; Compute base + TILE(y)
+    ldh a, [hMovementPosition+2]
+    rra
+    ld d, a
+    ldh a, [hMovementPosition+1]
+    ld b, a ; Preserve for later
+    rra
+REPT 2
+    srl d
+    rra
+ENDR
+    ld e, a
+    ld a, [wMapCollisionPtr+1]
+    add a, e
+    ld e, a
+    ld a, [wMapCollisionPtr+2]
+    adc a, 0
+    ld d, a
+    ; Summary:
+    ; hl = TILE(height) * TILE(x)
+    ; de = base + TILE(y)
+    ; b = y
+    ; c = x
+    add hl, de
+    ld a, [wMapCollisionMappingsPtr]
+    ld d, a
+    ldh a, [hActiveColliders]
+    add a, a
+    jr nc, .topLeftColliderOff
+    ld a, [hl]
+    and a ; Mapping 0 is hardcoded to "all passable"
+    jr z, .topLeftColliderOff
+    sub 2 ; Mapping 1 is hardcoded to "none passable"
+    ret c ; Returns with carry set
+    ; FIXME: assumes at most 2^5 + 2 = 34 mappings
+    add a, a
+    add a, a
+    add a, a
+    ld e, a
+    ld a, b
+    and %111
+    or e
+    ld e, a
+    ld a, c
+    and %111
+    inc a
+    ld c, a
+    ld a, [de] ; Read row
+.shiftRowTL
+    add a, a
+    dec c
+    jr nz, .shiftRowTL
+    ret c
+    ldh a, [hMovementPosition+4]
+    ld c, a
+.topLeftColliderOff
 
-.halveVector
-    ld hl, wMovementVector + 3
-    sra [hl]
-    dec hl
-    rr [hl]
+    ; Move to bottom-left collider
+    ; Compute vertical displacement
+    ldh a, [hMovementHitbox]
+    ld e, a
+    ldh a, [hMovementPosition+1]
+    add a, e
+    ld b, a
+    sub a, e
+    and 7
+    add a, e
+    and -8
+    rra
+    rra
+    rra
+    add a, l
+    ld l, a
+    adc a, h
+    sub l
+    ld h, a
+    ldh a, [hActiveColliders]
+    rra
+    jr nc, .bottomLeftColliderOff
+    ld a, [hl]
+    and a ; Mapping 0 is hardcoded to "all passable"
+    jr z, .bottomLeftColliderOff
+    sub 2 ; Mapping 1 is hardcoded to "none passable"
+    ret c ; Returns with carry set
+    ; FIXME: assumes at most 2^5 + 2 = 34 mappings
+    add a, a
+    add a, a
+    add a, a
+    ld e, a
+    ld a, b
+    and %111
+    or e
+    ld e, a
+    ld a, c
+    and %111
+    inc a
+    ld c, a
+    ld a, [de] ; Read row
+.shiftRowBL
+    add a, a
+    dec c
+    jr nz, .shiftRowBL
+    ret c
+.bottomLeftColliderOff
 
-    dec hl
-    sra [hl]
-    dec hl
-    rr [hl]
+    ; Move to bottom-right collider
+    ; Compute horizontal displacement
+    ldh a, [hMovementHitbox+1]
+    ld e, a
+    ldh a, [hMovementPosition+4]
+    add a, e
+    ld c, a
+    sub a, e
+    and 7
+    add a, e
+    and -8
+    jr z, .noHorizDisplacement
+    rra
+    rra
+    rra
+    ; This is assumed to be rather small, and `Mult8x8` would trash too many regs
+    ld e, a
+    ; TODO: this is certainly optimizable
+.addHorizontalDisplacement
+    ldh a, [hMapHeight]
+    add a, l
+    ld l, a
+    adc a, h
+    sub l
+    ld h, a
+    dec e
+    jr nz, .addHorizontalDisplacement
+.noHorizDisplacement
+    ldh a, [hActiveColliders]
+    bit 6, a
+    jr z, .bottomRightColliderOff
+    ld a, [hl]
+    and a ; Mapping 0 is hardcoded to "all passable"
+    jr z, .bottomRightColliderOff
+    sub 2 ; Mapping 1 is hardcoded to "none passable"
+    ret c ; Returns with carry set
+    ; FIXME: assumes at most 2^5 + 2 = 34 mappings
+    add a, a
+    add a, a
+    add a, a
+    ld e, a
+    ld a, b
+    and %111
+    or e
+    ld e, a
+    ld a, c
+    and %111
+    inc a
+    ld c, a
+    ld a, [de] ; Read row
+.shiftRowBR
+    add a, a
+    dec c
+    jr nz, .shiftRowBR
+    ret c
+    ldh a, [hMovementPosition+4]
+    ld c, a
+.bottomRightColliderOff
+
+    ; Move to top-right collider
+    ; Compute vertical displacement
+    ldh a, [hMovementHitbox]
+    ld e, a
+    ldh a, [hMovementPosition+1]
+    sub a, e
+    ld b, a
+    add a, e
+    and 7
+    sub a, e
+    and -8
+    jr z, .noVerticalDisplacement
+    or 7
+    rra
+    rra
+    rra
+    add a, l ; FIXME: this is bugged, sign extension is a pain, subtract instead.
+    ld l, a
+    adc a, h
+    sub l
+    ld h, a
+.noVerticalDisplacement
+    ldh a, [hActiveColliders]
+    and %10
+    ret z ; Returns with carry clear
+    ld a, [hl]
+    and a ; Mapping 0 is hardcoded to "all passable"
+    ret z ; Returns with carry clear
+    sub 2 ; Mapping 1 is hardcoded to "none passable"
+    ret c ; Returns with carry set
+    ; FIXME: assumes at most 2^5 + 2 = 34 mappings
+    add a, a
+    add a, a
+    add a, a
+    ld e, a
+    ld a, b
+    and %111
+    or e
+    ld e, a
+    ld a, c
+    and %111
+    inc a
+    ld c, a
+    ld a, [de] ; Read row
+.shiftRowTR
+    add a, a
+    dec c
+    jr nz, .shiftRowTR
+    ; Return with collider status in carry
     ret
 
 

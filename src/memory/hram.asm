@@ -173,7 +173,18 @@ hMovementSecondPoint::
     ds 2 ; ds 3
     ds 3
 
+; Which of an entity's 4 colliders are active at a given time:
+; ABCD being clockwise-ordered vertices, the mapping is:
+; AC00 00BD
+hActiveColliders::
+    db
+
 ENDU
+
+; Map height, in tiles
+; (For collision detection)
+hMapHeight::
+    db
 
 
 ; When non-zero, we're running on a SGB

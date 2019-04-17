@@ -11,6 +11,7 @@
         "attr_file": 0
     },
     "map_script": "VillageMapScript",
+    "collision_file": "collision.png",
 
     "npcs": [
         {"x": 298, "y": 127, "attr": 0, "name": "Bike", "processor": "EmptyFunc"}

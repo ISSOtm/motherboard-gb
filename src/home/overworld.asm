@@ -151,23 +151,17 @@ OverworldUpdate:
     ld a, [de]
     inc e ; inc de
     ld [wMovementVector], a
-    ld c, a
     ld a, [de]
     inc e ; inc de
     ld [wMovementVector+1], a
-    or c
     ld c, a
     ld a, [de]
     inc e ; inc de
     ld [wMovementVector+2], a
-    or c
     ld c, a
     ld a, [de]
     inc e ; inc de
     ld [wMovementVector+3], a
-    or c
-    ld c, sizeof_NPC
-    jr z, .skipMoving ; As collision is really taxing, don't check collision on entities that aren't moving
     push de
 
     push hl
@@ -213,10 +207,8 @@ OverworldUpdate:
     ldh a, [hMovementPosition+5]
     adc 0
     ld [hli], a
-    ld c, sizeof_NPC - NPC_DisplayType
-.skipMoving
     ld a, l
-    add a, c
+    add a, sizeof_NPC - NPC_DisplayType
     ld l, a
     jr nz, .moveNPC
 

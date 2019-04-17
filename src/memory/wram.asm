@@ -93,6 +93,13 @@ wMapScriptPtr::
     db
     dw
 
+wMapCollisionMappingsPtr::
+    db
+; Current map's collision table ptr
+wMapCollisionPtr::
+    db
+    dw
+
 
 ; Which SGB palette-related action to take on the next frame
 ; Required because packets tend to take effect one frame earlier than the thing they're synced to (eg. textbox)

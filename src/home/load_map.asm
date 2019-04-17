@@ -78,11 +78,13 @@ LoadMap:
     ld de, wMapHeight
     ld a, [hli] ; Height
     ld [de], a
+    ld c, a
     sub 1
     ld [wBottomCamLock], a
     inc de
     ld a, [hli]
     ld [de], a
+    ld b, a
     sbc 0
     ld [wBottomCamLock+1], a
     jr nz, .bottomLockOk
@@ -92,6 +94,13 @@ LoadMap:
     ld a, SCRN_Y
     ld [wBottomCamLock], a
 .bottomLockOk
+    ld a, c
+    ; Divide height by 8
+REPT 3
+    srl b
+    rra
+ENDR
+    ldh [hMapHeight], a
     inc de
     ld a, [hli] ; Width
     ld [de], a
@@ -127,6 +136,16 @@ LoadMap:
     ld [wMapScriptPtr+1], a
     ld a, [hli]
     ld [wMapScriptPtr+2], a
+
+    ; Read collision ptr
+    ld a, [hli]
+    ld [wMapCollisionMappingsPtr], a
+    ld a, [hli]
+    ld [wMapCollisionPtr], a
+    ld a, [hli]
+    ld [wMapCollisionPtr+1], a
+    ld a, [hli]
+    ld [wMapCollisionPtr+2], a
 
     ; Load NPC data
     ld de, wNPC1
@@ -314,7 +333,6 @@ ENDC
     ld e, a
     jr nz, .clearTriggers
 .dontClearTriggers
-
 
     ld a, [wTargetWarp]
     ld c, a
