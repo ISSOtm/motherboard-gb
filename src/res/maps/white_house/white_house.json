@@ -13,7 +13,9 @@
     "map_script": "NULL",
     "collision_file": "collision.png",
 
-    "npcs": [],
+    "npcs": [
+        {"x": 64, "y": 64, "attr": 0, "name": "CollisionTest", "processor": "EmptyFunc"}
+    ],
 
     "triggers": [
         {"type": "coordscript", "x": 68, "y": 148, "x_size": 58, "y_size": 1, "args": ["TRIGTYPE_WARP", "MAP_VILLAGE", "0", "8 << 1"]}
