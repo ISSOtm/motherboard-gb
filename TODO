@@ -1,4 +1,3 @@
-Fix phony target generation
 Fix SGB border (SuperFamiconv states that it can't allocate the colors in the palette?)
 Fix color layout on language menu (perhaps also on main menu)
 Language features (different strings)
@@ -10,4 +9,3 @@ Finish overlap fix
 Pause menu
 Compress title screen XOR masks and unpack 'em to WRAM (should be done late, since it might crush uninitialized memory exceptions, and isn't very invasive)
 
-Implement dummy rules for depended files (so Make doesn't error out when they're deleted)
