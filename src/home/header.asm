@@ -155,10 +155,8 @@ LicensedText:
     ld hl, hBGP
     ld b, 4
 .fadeOut
-    scf
-    rr [hl]
-    scf 
-    rr [hl]
+    sra [hl] ; Bit 7 is guaranteed to be set due to previous shift, so we can use `sra`
+    sra [hl]
     wait 5 frames
     dec b
     jr nz, .fadeOut
