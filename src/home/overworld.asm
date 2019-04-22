@@ -235,10 +235,7 @@ OverworldUpdate:
     adc a, HIGH(CameraDeltaFuncs)
     sub l
     ld h, a
-    ld a, [hli]
-    ld h, [hl]
-    ld l, a
-    rst call_hl
+    call JumpToPtr
 
     ; Apply lerping, and calculate the direction the camera moved in
     ; Using a fixed division of 16
@@ -446,10 +443,7 @@ OverworldUpdate:
     adc a, HIGH(.scrollingFuncs)
     sub l
     ld h, a
-    ld a, [hli]
-    ld h, [hl]
-    ld l, a
-    rst call_hl
+    call JumpToPtr
 
 
     ; Perform textbox ops, if there's a need to
@@ -521,11 +515,8 @@ OverworldUpdate:
     adc a, HIGH(PlayerStateMachineFuncs)
     sub l
     ld h, a
-    ld a, [hli]
-    ld h, [hl]
-    ld l, a
     and a ; Reset carry because a lot of callees simply `ret (n)z` without changing the C flag
-    rst call_hl
+    call JumpToPtr
     jr nc, .noStateChange
     ld hl, wPlayer_DisplayCounter
     xor a

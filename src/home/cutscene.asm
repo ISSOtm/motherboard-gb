@@ -55,10 +55,7 @@ ProcessCutscene::
     add a, a
     ld l, a
     ld h, HIGH(CutsceneFuncTable)
-    ld a, [hli]
-    ld h, [hl]
-    ld l, a
-    rst call_hl
+    call JumpToPtr
     ldh a, [hCutsceneCurrentCommand]
     add a, a
     jr c, .again
@@ -457,7 +454,7 @@ StartCutscene::
     ld [hl], a
     ld a, l
     ld [wCutsceneStackPtr], a
-    
+
 .starting
     ld hl, wCutscenePtr
     ld a, [bc]

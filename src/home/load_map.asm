@@ -369,10 +369,7 @@ ENDC
     ; TODO: Decide how to set the camera
     ld a, [hli]
     ; Finally, run custom processor to maybe alter state in a custom way
-    ld a, [hli]
-    ld h, [hl]
-    ld l, a
-    rst call_hl
+    call JumpToPtr
     pop hl
 .noWarp
     inc hl
