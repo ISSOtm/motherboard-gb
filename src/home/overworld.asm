@@ -183,9 +183,10 @@ OverworldUpdate:
     sbc 0
     ldh [hMovementPosition+5], a
 
-    ld a, 16
+    ; Reminder: hitboxes are 1 pixel thicker than the value loaded into these
+    ld a, 16 - 1
     ldh [hMovementHitbox], a
-    ld a, 12
+    ld a, 12 - 1
     ldh [hMovementHitbox + 1], a
 
     call DoCollisionMovement
