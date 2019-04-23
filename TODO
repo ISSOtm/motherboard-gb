@@ -1,11 +1,10 @@
 Fix SGB border (SuperFamiconv states that it can't allocate the colors in the palette?)
 Fix color layout on language menu (perhaps also on main menu)
+* Transition out of title screen
+Make player interact with what's in front of them instead of at their feet
 Language features (different strings)
-Transition out of title screen
 Main menu (finish it)
-Collision detection
-  1 coord per edge (UDLR), and some boxes
+Dynamic collision detection (source some collision mappings from RAM and modify them)
 Finish overlap fix
 Pause menu
 Compress title screen XOR masks and unpack 'em to WRAM (should be done late, since it might crush uninitialized memory exceptions, and isn't very invasive)
-
