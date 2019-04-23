@@ -16,7 +16,7 @@ The .sym file is very helpful towards debugging. Competent emulators (BGB) will 
 The .map file explains how things are laid out in the ROM. Mostly useful, imo, to check out how much space is remaining in places.
 **DO NOT DISTRIBUTE THE SYM OR MAP FILE, THAT'S A VERY HIGH RISK OF GETTING THE ROM REVERSE-ENGINEERED MUCH MORE QUICKLY.** Unless that's what you want, I guess?
 
-By the way, if at any point `make` spews weird errors, try running `make clean`, then `make` again. And if `make clean` yells at you some more, delete the `bin`, `obj` and `deps` folders. That should hopefully fix things - if not, you've screwed up the source code ¯\_(ツ)_/¯
+By the way, if at any point `make` spews weird errors, try running `make clean`, then `make` again. And if `make clean` yells at you some more, delete the `bin`, `obj` and `deps` folders. That should hopefully fix things - if not, you've screwed up the source code ¯\\\_(ツ)\_/¯
 
 If you get an error about `superfamiconv` not exiting, try doing `make superfamiconv` then `make` again. (That program isn't automatically compiled in case you alreayd have it on your machine.)
 
@@ -53,6 +53,10 @@ Purpose being, you should be able to swap out the entire `data` folder and keep 
 
 All memory declarations (all kinds of RAM) should go here. I know that it makes the code much less portable, but it also allows much more fine-grained control over the memory, if such a need arises. Please stick to the files already existing.
 
+## `npc`
+
+The files here define animation frames for the different NPCs. It might be better to move this folder into `res/npc`, but I'm unsure.
+
 ## `tools`
 
 This folder contains tools needed to build resources in the `res` folder. ...Considering I've myself put at least one tool in the `res` folder, it's more like "if a tool is used for a lot of different files, then it goes in `tools`".
@@ -64,6 +68,14 @@ There's a catch with automated creation. If a file doesn't have an explicit rule
 
 First, subdirs of the `res` folder should all contain one `Makefile` that contains instructions on how to build everything in that folder.
 The big catch is that the Makefile will not be run from the folder where it's in, but *from the root of the project*. Write your rules with that in mind.
+
+### `res/npc`
+
+The `.chr` files inside that folder have been hand-crafted, and are not intended to be generated from the source images using RGBGFX. TODO: use a tool such an PinoBatch's to generate the sprite cels?
+
+### `res/title_screen`
+
+The `src/frame_X_raw.chr` files are not intended to be generated from the source images whatsoever, due to several constraints regarding their usage. Nevertheless, I don't see a reason why you'd edit them, so they're present in the repo.
 
 
 # Coding style
@@ -79,7 +91,7 @@ Protips:
 - If something's mostly standalone and fits in $4000 bytes, put it in ROMX. Otherwise, look for ways to put it in ROMX. If it would bloat the code too much, put it in ROM0 but put as much as possible in ROMX.
 - Avoid giant `SECTION`s. Many little sections let the linker be more efficient with ROM occupation.
 - Never ever fucking ever fix your `SECTION`s' starting addresses. Use `ALIGN`. If you're fixing a section's address, you better have a good reason.
-- Use Git. Or any version control system if it's better than Git. I haven't set it up because I'm working alone and I'm not too fond of Git if I can avoid it, but it's a very good failsafe. Also, keep backups.
+- Use Git. Or any version control system if it's better than Git. Also, keep backups.
 - Comment your code. Always.
 
 
