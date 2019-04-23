@@ -273,6 +273,7 @@ GetLanguageString::
 ; Uses a dichotomy approach to mitigate coordinate asymmetry and reduce computations
 ; NOTE: All parameters are fixed-point integer pairs
 ; WARNING: This code may function unexpectedly for movement vectors greater than 4 pixels, please enforce speed caps thx
+; WARNING: A hitbox size of "0" is actually 1 pixel thick
 ; @param hMovementPosition The point to be moved (16.8 pair)
 ; @param hMovementHitbox The size of the point's hitbox (8.0 pair)
 ; @param wMovementVector The movement to be applied to the point (8.8 pair)
@@ -566,15 +567,13 @@ ENDR
     ld a, c
     and %111
     inc a
-    ld c, a
+    ld b, a ; It's fine to trash B as a counter because if it's ran, the remaining collider will re-compute it anyways
     ld a, [de] ; Read row
 .shiftRowBR
     add a, a
-    dec c
+    dec b
     jr nz, .shiftRowBR
     ret c
-    ldh a, [hMovementPosition+4]
-    ld c, a
 .bottomRightColliderOff
 
     ; Move to top-right collider
@@ -582,23 +581,20 @@ ENDR
     ldh a, [hMovementHitbox]
     ld e, a
     ldh a, [hMovementPosition+1]
-    sub a, e
     ld b, a
-    add a, e
     and 7
-    sub a, e
+    add a, e
     and -8
-    jr z, .noVerticalDisplacement
-    or 7
     rra
     rra
     rra
-    add a, l ; FIXME: this is bugged, sign extension is a pain, subtract instead.
+    ld e, a
+    ld a, l
+    sub e
     ld l, a
-    adc a, h
-    sub l
-    ld h, a
-.noVerticalDisplacement
+    jr nc, .noCarry
+    dec h
+.noCarry
     ldh a, [hActiveColliders]
     and %10
     ret z ; Returns with carry clear
