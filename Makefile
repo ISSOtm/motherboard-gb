@@ -3,29 +3,12 @@
 .DEFAULT_GOAL := all
 
 
-FillValue = 0xFF
 
-ROMVersion = 1
-
-# Header constants (passed to RGBFIX)
-# Keeping the old name Motherboard somewhere... ,o7
-GameID = MBGB
-GameTitle = SOFTBOUNDGB
-# Licensed by Homebrew (lel)
-NewLicensee = HB
-OldLicensee = 0x33 # SGB compat and all that
-# MBC5             0x19
-# MBC5+RAM         0x1A
-# MBC5+RAM+BATTERY 0x1B
-MBCType = 0x1B
-# ROM size is automatic
-# SRAM sizes:
-#   8k 0x02
-#  32k 0x03
-# 128k 0x04
-#  64k 0x05
-SRAMSize = 0x03
-
+################################################
+#                                              #
+#             CONSTANT DEFINITIONS             #
+#                                              #
+################################################
 
 # Directory constants
 SRCDIR  = src
@@ -37,34 +20,35 @@ DEPSDIR = deps
 RGBASM  = rgbasm
 RGBLINK = rgblink
 RGBFIX  = rgbfix
+MKDIR   = $(shell which mkdir)
+
+ROMFile = $(BINDIR)/$(ROMName).$(ROMExt)
+
+# Project-specific configuration
+include Makefile.conf
+
 
 # Argument constants
-ASFLAGS = -E -h -i $(SRCDIR)/ -i $(SRCDIR)/constants/ -i $(SRCDIR)/macros/ -p 0xFF
-LDFLAGS = -d -p 0xFF
-FXFLAGS = -sj -f lh -i $(GameID) -k $(NewLicensee) -l $(OldLicensee) -m $(MBCType) -n $(ROMVersion) -p $(FillValue) -r $(SRAMSize) -t $(GameTitle)
+ASFLAGS += -E -h -i $(SRCDIR)/ -i $(SRCDIR)/constants/ -i $(SRCDIR)/macros/ -p $(FillValue)
+LDFLAGS += -d -p $(FillValue)
+FXFLAGS += -j -f lh -i $(GameID) -k $(NewLicensee) -l $(OldLicensee) -m $(MBCType) -n $(ROMVersion) -p $(FillValue) -r $(SRAMSize) -t $(GameTitle)
 
 # The list of "root" ASM files that RGBASM will be invoked on
 ASMFILES := $(wildcard $(SRCDIR)/*.asm)
 
 
 
-# `superfamiconv`: Converts images to SNES graphics format, used to encode the SGB border
-# To build SuperFamiconv here; not necessary if you already have one
-superfamiconv: $(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv
-.PHONY: superfamiconv
-
-$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv: $(SRCDIR)/tools/SuperFamiconv
-	cd $< && make
-
-# To clone SuperFamiconv's GitHub repo (only has to be done once)
-$(SRCDIR)/tools/SuperFamiconv:
-	git clone https://github.com/Optiroc/SuperFamiconv.git $@
-
+################################################
+#                                              #
+#                RESOURCE FILES                #
+#                                              #
+################################################
 
 # Define how to compress files (same recipe for any file)
 %.pb16: %
 	src/tools/pb16.py $< $@
 
+# RGBGFX generates tilemaps with sequential tile IDs, which works fine for $8000 mode but not $8800 mode; `bit7ify.py` takes care to flip bit 7 so maps become $8800-compliant
 %.bit7.tilemap: src/tools/bit7ify.py %.tilemap
 	$^ $@
 
@@ -74,13 +58,12 @@ INITTARGETS := $(SRCDIR)/constants/maps.asm
 
 # Include all resource Makefiles
 # This must be done before we include `$(DEPSDIR)/all` otherwise `dummy` has no prereqs
-# FIXME: This might cause empty recipes when conflicts arise? But that's invalid anyways: how do I fix this?
 include $(wildcard $(SRCDIR)/res/*/Makefile)
 
 
 
 # `all` (Default target): build the ROM
-all: $(BINDIR)/motherboard.gb
+all: $(ROMFile)
 .PHONY: all
 
 # `clean`: Clean temp and bin files
@@ -112,8 +95,8 @@ $(DEPSDIR)/%.d: $(OBJDIR)/%.o ;
 
 $(OBJDIR)/%.o: DEPFILE = $(DEPSDIR)/$*.d
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm dummy
-	@mkdir -p $(DEPSDIR)
-	@mkdir -p $(OBJDIR)
+	@$(MKDIR) -p $(DEPSDIR)
+	@$(MKDIR) -p $(OBJDIR)
 	set -e; \
 	TMP_DEPFILE=$$(mktemp); \
 	$(RGBASM) -M $$TMP_DEPFILE $(ASFLAGS) -o $@ $<; \
@@ -122,8 +105,8 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.asm dummy
 	rm $$TMP_DEPFILE
 
 # Include (and potentially remake) all dependency files
-# Remove duplicated recipes, hence using yet another file grouping everything
-# Also filter out lines already defined in the resource Makefiles because defining two rules for the same file causes Bad Things(tm)
+# Remove duplicated recipes (`sort | uniq`), hence using yet another file grouping everything
+# Also filter out lines already defined in the resource Makefiles because defining two rules for the same file causes Bad Things(tm) (`grep`)
 SPACE :=
 SPACE +=
 # Yes this "space" hack is NEEDED. I don't like where I'm going anymore, either
@@ -135,8 +118,8 @@ endif
 
 
 # How to make the ROM
-$(BINDIR)/motherboard.gb: $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
-	@mkdir -p $(BINDIR)
+$(ROMFile): $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
+	@$(MKDIR) -p $(BINDIR)
 
 	$(RGBASM) $(ASFLAGS) -o $(OBJDIR)/build_date.o $(SRCDIR)/res/build_date.asm
 
@@ -148,4 +131,4 @@ $(BINDIR)/motherboard.gb: $(patsubst $(SRCDIR)/%.asm,$(OBJDIR)/%.o,$(ASMFILES))
 	src/tools/crcify.py $$TMP_ROM; \
 	$(RGBFIX) -v $$TMP_ROM; \
 	\
-	mv $$TMP_ROM $(BINDIR)/motherboard.gb
+	mv $$TMP_ROM $(ROMFile)
