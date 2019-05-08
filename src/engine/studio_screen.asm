@@ -100,7 +100,7 @@ CopyrightScreen:
     ld b, NB_COPYRIGHT_TILES
     call pb16_unpack_block
     ; ld de, CopyrightMap
-    ld hl, $9800
+    ld hl, _SCRN0
     ld bc, CopyrightMapEnd - CopyrightMap
     call Mapcpy
     ; Maybe do SGB stuff

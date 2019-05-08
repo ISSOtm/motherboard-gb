@@ -54,7 +54,7 @@ SendPacketNoDelay::
     ldh [rP1], a
     ld a, $30
     ldh [rP1], a
-    
+
     ld b, SGB_PACKET_SIZE
 .sendByte
     ld d, 8 ; 8 bits in a byte
@@ -111,7 +111,7 @@ FillScreenWithSGBMap::
     ldh [hSCY], a
     ldh [hSCX], a
     ld b, a ; ld b, 0
-    ld hl, $9C00
+    ld hl, _SCRN1
 .writeRow
     ld c, SCRN_X_B
 .writeTile
