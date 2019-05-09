@@ -103,6 +103,9 @@ CopyrightScreen:
     ld hl, _SCRN0
     ld bc, CopyrightMapEnd - CopyrightMap
     call Mapcpy
+    ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8000 | LCDCF_BG9800 | LCDCF_OBJOFF | LCDCF_BGON
+    ldh [rLCDC], a
+    ldh [hLCDC], a
     ; Maybe do SGB stuff
     ldh a, [hIsSGB]
     and a
@@ -113,9 +116,7 @@ CopyrightScreen:
     ld a, %11100100
 .notSGB
     ldh [hBGP], a
-    ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8000 | LCDCF_BG9800 | LCDCF_OBJOFF | LCDCF_BGON
-    ldh [rLCDC], a
-    ldh [hLCDC], a
+
     wait 64 frames ; Mandatory 1 second delay
     ld b, 0
 .waitStudioScreen ; Unless user is impatient, have extra delay
