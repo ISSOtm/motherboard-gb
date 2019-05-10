@@ -168,8 +168,6 @@ CopyrightScreen:
     ldh a, [hWX]
     cp 7
     jr nz, .endTransitionLoop
-
-    wait 5 frames
     ret
 
 
