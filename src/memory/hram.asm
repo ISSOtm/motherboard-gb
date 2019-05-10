@@ -156,6 +156,11 @@ NEXTU
 hLangSelMenuCursorPos::
     db
 
+hLangSelMenuTimer1::
+    db
+hLangSelMenuTimer2::
+    db
+
 NEXTU
 
 ; Position of the hitbox that's being moved
