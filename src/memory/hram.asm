@@ -161,6 +161,9 @@ hLangSelMenuTimer1::
 hLangSelMenuTimer2::
     db
 
+hLangSelMenuPalette::
+    db
+
 NEXTU
 
 ; Position of the hitbox that's being moved

@@ -49,6 +49,9 @@ LanguageMenuInit:
     ldh [hLangSelMenuTimer1], a
     xor a
     ldh [hLangSelMenuTimer2], a
+    ; xor a
+    ldh [hBGP], a
+    ldh [hOBP0], a
     ld hl, wShadowOAM + $A0 - 1
     ; xor a
 .clearSprites
@@ -67,8 +70,7 @@ LanguageMenuInit:
     ld c, .palettePacket - .oam
     rst memcpy_small
     ld a, $1B
-    ldh [hBGP], a
-    ldh [hOBP0], a
+    ldh [hLangSelMenuPalette], a
     ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8000 | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJON | LCDCF_BGON
     ldh [hLCDC], a
     ldh [rLCDC], a
@@ -108,7 +110,23 @@ LanguageMenuRedraw:
     ld a, [wShadowOAM + 2]
     xor 1
     ld [wShadowOAM + 2], a
+    xor a
 .keepFlagFrame
+    and $03
+    jr nz, .paletteOK
+    ldh a, [hBGP]
+    ld e, a
+    ldh a, [hLangSelMenuPalette]
+    add a, a
+    jr z, .paletteOK
+    rl e
+    add a, a
+    ldh [hLangSelMenuPalette], a
+    ld a, e
+    rla
+    ldh [hBGP], a
+    ldh [hOBP0], a
+.paletteOK
 
     ldh a, [hLangSelMenuTimer2]
     inc a
