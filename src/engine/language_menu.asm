@@ -13,7 +13,7 @@ LanguageMenuHeader::
     db NB_LANGUAGES ; Size
     dw LanguageMenuRedraw
     dw LanguageMenuItems
-    dw LanguageMenuClose
+    dw 0
 
 
 SECTION "Language menu", ROMX
@@ -98,10 +98,11 @@ INCBIN "res/lang_screen/gfx.chr.pb16"
     sgb_packet PAL_SET, 1, 4,0, 4,0, 4,0, 4,0, 1 | $80
 
 
-LanguageMenuRedraw:
+LanguageMenuRedraw: ; Called with selected item in `b`
     ld a, HIGH(wShadowOAM)
     ldh [hOAMBufferHigh], a
 
+    ; Change flag cel
     ldh a, [hLangSelMenuTimer1]
     inc a
     and $1F
@@ -110,8 +111,10 @@ LanguageMenuRedraw:
     ld a, [wShadowOAM + 2]
     xor 1
     ld [wShadowOAM + 2], a
-    xor a
+    xor a ; Force next event to trigger, as it's supposed to as well
 .keepFlagFrame
+
+    ; Apply fade-in (reusing previous timer for efficieny)
     and $03
     jr nz, .paletteOK
     ldh a, [hBGP]
@@ -128,6 +131,7 @@ LanguageMenuRedraw:
     ldh [hOBP0], a
 .paletteOK
 
+    ; Make arrows blink
     ldh a, [hLangSelMenuTimer2]
     inc a
     and $1F
@@ -138,6 +142,8 @@ LanguageMenuRedraw:
 .hideArrows
     ld [wShadowOAM + 5], a
     ld [wShadowOAM + 9], a
+
+    ; Change START button cel
     ldh a, [hLangSelMenuTimer2]
     and $07
     jr nz, .keepSTARTFrame
@@ -146,6 +152,7 @@ LanguageMenuRedraw:
     ld [wShadowOAM + 14], a
 .keepSTARTFrame
 
+    ; Move cursor (and attached sprites as well)
     ldh a, [hLangSelMenuCursorPos]
     ld c, a
     ld a, b ; Selected item
@@ -167,11 +174,6 @@ LanguageMenuRedraw:
     ld [wShadowOAM + 4], a
     add a, 16
     ld [wShadowOAM + 8], a
-    ret
-
-LanguageMenuClose:
-    ld a, [wPreviousMenuItem]
-    ld [wLanguage], a
     ret
 
 
