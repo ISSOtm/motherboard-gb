@@ -12,7 +12,7 @@ BORDERTMPFILES := $(patsubst %.png,%.bordermap,$(BORDERIMGS)) $(patsubst %.png,%
 
 CLEANTARGETS := $(CLEANTARGETS) $(BORDERFILES) $(patsubst %,%.pb16,$(BORDERFILES)) $(BORDERTMPFILES) $(RESDIR)/attr_files.bin $(RESDIR)/attr_files.bin.pb16 $(RESDIR)/palettes.bin.pb16 $(RESDIR)/palettes.bin
 
-INITTARGETS := $(INITTARGETS) $(RESDIR)/attr_files.bin.pb16 $(RESDIR)/palettes.bin.pb16 # $(patsubst %,%.pb16,$(BORDERFILES))
+INITTARGETS := $(INITTARGETS) $(RESDIR)/attr_files.bin.pb16 $(RESDIR)/palettes.bin.pb16 $(patsubst %,%.pb16,$(BORDERFILES))
 
 
 # The command run by this is basically a giant hack, but hey, it works!
@@ -26,12 +26,11 @@ $(RESDIR)/borders/%.borderpal: $(RESDIR)/borders/%.png $(SRCDIR)/tools/SuperFami
 	$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv palette -i $< -d $@ \
 		$(SUPERFAMICONVFLAGS) -P 3 -C 16 --color-zero $(COLORZERO)
 $(RESDIR)/borders/%.borderchr: $(RESDIR)/borders/%.png $(RESDIR)/borders/%.borderpal $(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv
-	$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv tiles -i $< -p $(RESDIR)/borders/%.borderpal -d $@ \
-		$(SUPERFAMICONVFLAGS) -B 4 --max-tiles 128
+	$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv tiles -i $< -p $(@:.borderchr=.borderpal) -d $@ \
+		$(SUPERFAMICONVFLAGS) -B 4 #--max-tiles 256
 $(RESDIR)/borders/%.bordermap: $(RESDIR)/borders/%.png $(RESDIR)/borders/%.borderpal $(RESDIR)/borders/%.borderchr $(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv
-	$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv map -i $< -p $(RESDIR)/borders/%.borderpal -t $(RESDIR)/borders/%.borderchr -d $@ \
-		$(SUPERFAMICONVFLAGS) -B 4 --map-width 32 --map-height 28 --color-zero $(COLORZERO)
-	truncate -s $(expr 32 * 32) $@
+	$(SRCDIR)/tools/SuperFamiconv/bin/superfamiconv map -i $< -p $(@:.bordermap=.borderpal) -t $(@:.bordermap=.borderchr) -d $@ \
+		$(SUPERFAMICONVFLAGS) -B 4 --map-width 32 --map-height 28
 
 # SuperFamiconv can't generate palettes starting from #4 (mandatory for SGB borders, which can only use palettes 4-6, maybe also 7?)
 $(RESDIR)/borders/%.4.bordermap: $(SRCDIR)/tools/shift_border_palettes.py $(RESDIR)/borders/%.bordermap
