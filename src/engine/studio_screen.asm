@@ -103,7 +103,7 @@ CopyrightScreen:
     ld hl, _SCRN0
     ld bc, CopyrightMapEnd - CopyrightMap
     call Mapcpy
-    ld a, LCDCF_ON | LCDCF_WINON | LCDCF_WIN9C00 | LCDCF_BG8000 | LCDCF_BG9800 | LCDCF_OBJOFF | LCDCF_BGON
+    ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8000 | LCDCF_BG9800 | LCDCF_OBJOFF | LCDCF_BGON
     ldh [rLCDC], a
     ldh [hLCDC], a
     ; Maybe do SGB stuff
@@ -117,20 +117,6 @@ CopyrightScreen:
 .notSGB
     ldh [hBGP], a
 
-    ; Set up window right now
-    ld a, SCRN_X + 7
-    ldh [hWX], a
-    xor a
-    ldh [hWY], a
-    ; xor a
-    ld hl, $8FF0
-    ld c, 16
-    call LCDMemsetSmall
-    dec a ; ld a, $FF
-    ld hl, _SCRN1
-    ld bc, SCRN_VX_B * SCRN_Y_B
-    call LCDMemset
-
     wait 64 frames ; Mandatory 1 second delay
     ld b, 0
 .waitStudioScreen ; Unless user is impatient, have extra delay
@@ -141,33 +127,6 @@ CopyrightScreen:
     and a
     jr z, .waitStudioScreen
 .done
-
-    ld de, $FF00
-.endTransitionLoop
-    rst wait_vblank
-    ldh a, [hWX]
-    sub 8
-    ldh [hWX], a
-    and $3F
-    cp $17
-    jr nz, .noFadeOut
-    ld hl, $8FF0
-    ld c, 8
-.editFillTile
-    ld a, e
-    ld [hli], a
-    ld a, d
-    ld [hli], a
-    dec c
-    jr nz, .editFillTile
-    ld a, e
-    cpl
-    ld d, a
-    ld e, $FF
-.noFadeOut
-    ldh a, [hWX]
-    cp 7
-    jr nz, .endTransitionLoop
     ret
 
 
