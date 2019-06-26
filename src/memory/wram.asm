@@ -291,14 +291,7 @@ wTriggerArgPool::
 
 
 wTriggerPool::
-TRIGGER_ID = 0
-REPT NB_TRIGGERS
-MAKE_TRIGGER equs STRCAT("dstruct Trigger, wTrigger", STRSUB("{TRIGGER_ID}", 2, STRLEN("{TRIGGER_ID}") - 1))
-    MAKE_TRIGGER
-    PURGE MAKE_TRIGGER
-TRIGGER_ID = TRIGGER_ID + 1
-ENDR
-PURGE TRIGGER_ID
+    dstructs NB_TRIGGERS, Trigger, wTrigger
 
 
 ; This is ALIGN[8]

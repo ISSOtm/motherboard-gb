@@ -1373,7 +1373,7 @@ OverworldStateBegin:
     jp ROMbankswitch
 
 ; .player
-    dstruct NPC, .player, 0, $7F, 0, $F1, PLAYER_STATE_STANDING_RIGHT, 0, 4, 0, BANK(PlayerDrawPtrs), PlayerDrawPtrs, 0, EmptyFunc
+    dstruct NPC, .player, .ySubPos=0, .yPos=$7F, .xSubPos=0, .xPos=$F1, .displayType=PLAYER_STATE_STANDING_RIGHT, .displayCounter=0, .baseTileID=4, .baseAttr=0, .displayStructBank=BANK(PlayerDrawPtrs), .displayStructPtr=PlayerDrawPtrs, .status=0, .processingPtr=EmptyFunc
 
 
 OverworldStateFadeIn:
