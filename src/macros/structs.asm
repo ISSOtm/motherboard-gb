@@ -37,10 +37,6 @@
 
 
 
-; Yes I need this macro, for version checking.
-; What did you expect from a macro pack that mostly relies on code generation at compile time?
-; Also this is your last chance to turn back. It doesn't get any better.
-
 ; strreplace variable_name, original_char, new_char
 strreplace: MACRO
 DOT_POS = STRIN("{\1}", \2)
@@ -61,7 +57,7 @@ ENDM
 ; Call with the expected version string to ensure you're using a compatible version
 ; Example: rgbds_structs_version 1.0.0
 rgbds_structs_version: MACRO
-CURRENT_VERSION equs "1,2,0"
+CURRENT_VERSION equs "1,2,1"
 EXPECTED_VERSION equs "\1"
     strreplace EXPECTED_VERSION, ".", "\,"
 check_ver: MACRO
@@ -216,7 +212,8 @@ IS_NAMED_INVOCATION = 1
         ; This is a named instantiation, translate that to an ordered one
         ; This is needed because data has to be laid out in order, so some translation is needed anyways
         ; And finally, it's better to re-use the existing code at the cost of a single nested macro, I believe
-MACRO_ARGS equs "" ; This will be used later, but define it now because `SHIFT` will be run
+MACRO_CALL equs "dstruct \1, \2" ; This will be used later, but define it now because `SHIFT` will be run
+        ; In practice `SHIFT` has no effect outside of one when invoked inside of a REPT block, but I hope this behavior is changed (causes a problem elsewhere)
 
 ARG_NUM = 3
         REPT NB_FIELDS
@@ -279,25 +276,32 @@ ARG_NUM = ARG_NUM + 1
         ; Now that we matched each named initializer to their order, invoke the macro again but without names
 FIELD_ID = 0
         REPT NB_FIELDS
-TMP equs "{MACRO_ARGS}"
-            PURGE MACRO_ARGS
+TMP equs "{MACRO_CALL}"
+            PURGE MACRO_CALL
 FIELD_ID_STR equs STRSUB("{FIELD_ID}", 2, STRLEN("{FIELD_ID}") - 1)
-GET_INITIALIZER_VALUE equs "INITIALIZER_VALUE equs \{FIELD_{FIELD_ID_STR}_INITIALIZER\}"
+GET_INITIALIZER_VALUE equs "INITIALIZER_VALUE equs \"\{FIELD_{FIELD_ID_STR}_INITIALIZER\}\""
             PURGE FIELD_ID_STR
 GET_INITIALIZER_VALUE
-            PRINTT "{INITIALIZER_VALUE}\n"
             PURGE GET_INITIALIZER_VALUE
-MACRO_ARGS equs "{TMP}, {INITIALIZER_VALUE}"
+MACRO_CALL equs "{TMP}, {INITIALIZER_VALUE}"
             PURGE TMP
             PURGE INITIALIZER_VALUE
 FIELD_ID = FIELD_ID + 1
         ENDR
 
-        ;PRINTT "dstruct \1, \2 {MACRO_ARGS}\n"
-        dstruct \1, \2 MACRO_ARGS ; Now do call the macro
         PURGE FIELD_ID
-        PURGE MACRO_ARGS
+        ; Clean up vars for nested invocation, otherwise some `equs` will be expanded
+        PURGE INSTANCE_NAME
+        PURGE STRUCT_NAME
+        PURGE IS_NAMED_INVOCATION
+        PURGE NB_FIELDS
+
+        MACRO_CALL ; Now do call the macro
+        PURGE MACRO_CALL
+
+
     ELSE
+
 
 INSTANCE_NAME:: ; Declare the struct's root
 
@@ -355,12 +359,12 @@ sizeof_\2 = sizeof_\1
 
         ; Clean up
         PURGE FIELD_ID
-
+        ; Make sure to keep what's here in sync with cleanup at the end of a named invocation
+        PURGE INSTANCE_NAME
+        PURGE STRUCT_NAME
+        PURGE IS_NAMED_INVOCATION
+        PURGE NB_FIELDS
     ENDC
-    PURGE INSTANCE_NAME
-    PURGE STRUCT_NAME
-    PURGE IS_NAMED_INVOCATION
-    PURGE NB_FIELDS
 ENDM
 
 
