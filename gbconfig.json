@@ -1,0 +1,80 @@
+{
+    "assembler": {
+        "dependPath": "./deps/",
+        "includePaths": [
+            "./src/",
+            "./src/constants/",
+            "./src/macros/"
+        ],
+        "objectPath": "./obj/",
+        "outputDependFiles": true,
+        "outputObjectFiles": true,
+        "settings": {
+            "exportAllLabels": true,
+            "nopAfterHalt": false,
+            "optimizeLd": true,
+            "padding": 255
+        },
+        "sourcePaths": [
+            "./src/*.asm"
+        ]
+    },
+
+    "fixer": {
+        "outputPath": "./bin/motherboard.gb",
+        "outputRomFile": true,
+        "romPath": "./bin/motherboard.gb",
+        "settings": {
+            "cgbCompatibility": "dmg",
+            "gameId": "MBGB",
+            "gameTitle": "SOFTBOUNDGB",
+            "gameVersion": 0,
+            "globalChecksum": "fix",
+            "headerChecksum": "fix",
+            "japanese": false,
+            "licensee": "HB",
+            "licenseeCode":"use-licensee",
+            "mbcType": "MBC5 + RAM + BATTERY",
+            "nintendoLogo": "fix",
+            "padding": 255,
+            "ramSize": "32KB",
+            "romSize": "auto",
+            "sgbCompatible": true
+        }
+    },
+
+    "formatter": {
+        "settings": {
+            "conditionCodeCase": "lowercase",
+            "functionCase": "uppercase",
+            "hexLetterCase": "uppercase",
+            "keywordCase": "uppercase",
+            "opcodeCase": "lowercase",
+            "psuedoOpCase": "lowercase",
+            "regionCase": "uppercase",
+            "registerCase": "lowercase",
+            "tabSize": 4,
+            "useSpaces": true
+        }
+    },
+
+    "linker": {
+        "mapPath": "./bin/motherboard.map",
+        "objectPaths": [
+            "./obj/*.o"
+        ],
+        "outputMapFile": true,
+        "outputRomFile": true,
+        "outputSymFile": true,
+        "romPath": "./bin/motherboard.gb",
+        "settings": {
+            "disableRomBanks": false,
+            "disableVramBanks": true,
+            "disableWramBanks": true,
+            "padding": 255
+        },
+        "symPath": "./bin/motherboard.sym",
+        "useLinkerScript": false,
+        "useOverlay": false
+    }
+}
