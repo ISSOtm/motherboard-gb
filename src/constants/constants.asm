@@ -1,5 +1,5 @@
 
-INCLUDE "constants/hardware.inc"
+INCLUDE "res/hardware.inc/hardware.inc"
 INCLUDE "constants/enums.asm"
 INCLUDE "constants/text.asm"
 INCLUDE "constants/maps.asm"
