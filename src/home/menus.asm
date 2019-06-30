@@ -173,7 +173,7 @@ ProcessMenus::
 
     ld a, [wMenuAction]
     dec a
-    cp MENU_ACTION_INVALID
+    cp MENU_ACTION_INVALID - 1
     jr nc, .menuActionNone
     ; Perform the requested action
     push hl
