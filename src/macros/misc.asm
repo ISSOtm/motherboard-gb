@@ -168,12 +168,6 @@ ENDC
     PURGE PADDING_AMOUNT
 ENDM
 
-; assert_align baseLabel, alignment (bytes)
-; **ASSUMING `baseLabel` IS CORRECTLY ALIGNED**, throws an error if the address is not aligned as specified
-assert_align: MACRO
-
-ENDM
-
 
 trim_str: macro
     IF STRSUB("{\1}", 1, 1) == " "
