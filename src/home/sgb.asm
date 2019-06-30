@@ -105,7 +105,9 @@ FreezeScreenPacket:
 ; Fill the $9C00 tilemap with a pattern suitable for SGB _TRN
 ; Also sets up the rendering parameters for the transfer
 ; Finally, assumes the LCD is **off**
-; @return hl
+; @return hl $9D90
+; @return bc $0005
+; @return a $99
 FillScreenWithSGBMap::
     xor a
     ldh [hSCY], a
@@ -130,6 +132,10 @@ FillScreenWithSGBMap::
 .done
     ld a, %11100100
     ldh [hBGP], a
+
+; Sets up LCDC in a way suitable for SGB VRAM transfers
+; Call instead of `FillScreenWithSGBMap` if SCX, SCY 
+; @return a $99
 SetupSGBLCDC::
     ld a, LCDCF_ON | LCDCF_WINOFF | LCDCF_BG8000 | LCDCF_BG9C00 | LCDCF_OBJOFF | LCDCF_BGON
     ldh [rLCDC], a

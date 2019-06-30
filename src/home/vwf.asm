@@ -129,6 +129,10 @@ DrawVWFChars::
 ; @param hl Pointer to the string to be displayed
 ; @param b  Bank containing the string
 ; @param a  Non-zero to flush the current string (use zero if you want to keep printing the same string)
+; @return a 0
+; @return hl wTextCharset
+; @return f NC and Z
+; @destroy bc de
 PrintVWFText::
     and a ; Set Z flag for test below
 

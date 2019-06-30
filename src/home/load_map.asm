@@ -30,11 +30,12 @@ LoadMap:
 
     ld a, [de]
     inc de
-    ld [wFadePalettes], a
+    ld [wFadePalettes], a ; Stored BGP
     ld hl, 4 + 4 * 2 + 1
     ldh a, [hIsSGB]
     and a
     jr z, .skipSGBStuff
+    ; Palettes are different on SGB due to the color 0 restriction
     ld a, [de]
     inc de
     ld [wFadePalettes], a
