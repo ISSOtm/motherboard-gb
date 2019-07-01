@@ -14,13 +14,18 @@ SECTION "Dummy section", ROM0 ; To have the first `Memcpy` declare properly
 ; Copies bc bytes of data from de to hl
 Memcpy::
  f Memcpy
+    inc b
+    inc c
+    jr .begin
+.loop
     ld a, [de]
     ld [hli], a
     inc de
-    dec bc
-    ld a, b
-    or c
-    jr nz, Memcpy
+.begin
+    dec c
+    jr nz, .loop
+    dec b
+    jr nz, .loop
     ret
 
 ; Copies a null-terminated string from de to hl, including the terminating NUL
@@ -47,14 +52,19 @@ LCDMemcpySmall::
 ; Copies bc bytes of data from de to hl in a LCD-safe manner
 LCDMemcpy::
  f LCDMemcpy
+    inc b
+    inc c
+    jr .begin
+.loop
     wait_vram
     ld a, [de]
     ld [hli], a
     inc de
-    dec bc
-    ld a, b
-    or c
-    jr nz, LCDMemcpy
+.begin
+    dec c
+    jr nz, .loop
+    dec b
+    jr nz, .loop
     ret
 
 ; Sets c bytes of data at hl with the value in a
@@ -80,13 +90,18 @@ LCDMemset::
 ; Sets bc bytes of data at hl with the value in d
 LCDMemsetFromD::
 ; No f (...) because of the slide-in above
+    inc b
+    inc c
+    jr .begin
+.loop
     wait_vram
     ld a, d
     ld [hli], a
-    dec bc
-    ld a, b
-    or c
-    jr nz, LCDMemsetFromD
+.begin
+    dec c
+    jr nz, .loop
+    dec b
+    jr nz, .loop
     ret
 
 
