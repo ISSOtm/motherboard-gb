@@ -333,6 +333,7 @@ wMenuClosingReason::
 wPreviousMenuClosingReason::
     db
 ; The item selected on the last menu that was closed
+; Updated when the menu is validated through the `VALIDATE` action
 wPreviousMenuItem::
     db
 
