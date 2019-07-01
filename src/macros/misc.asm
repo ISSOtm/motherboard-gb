@@ -222,3 +222,14 @@ NB_TOKENS = NB_TOKENS + 1
         count_tokens_internal \1
     ENDC
 endm
+
+
+compile_assert: MACRO
+    IF !(\1)
+        IF _NARG > 1
+            FAIL "Assertion \1 failed: \2"
+        ELSE
+            FAIL "Assertion \1 failed"
+        ENDC
+    ENDC
+ENDM
