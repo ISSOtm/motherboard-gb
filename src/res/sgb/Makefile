@@ -34,7 +34,7 @@ $(RESDIR)/borders/%.bordermap: $(RESDIR)/borders/%.png $(RESDIR)/borders/%.borde
 
 # SuperFamiconv can't generate palettes starting from #4 (mandatory for SGB borders, which can only use palettes 4-6, maybe also 7?)
 $(RESDIR)/borders/%.4.bordermap: $(SRCDIR)/tools/shift_border_palettes.py $(RESDIR)/borders/%.bordermap
-	$^ $@
+	$^ $@ && truncate -s 2048 $@
 
 $(RESDIR)/borders/%.borderattr: $(RESDIR)/borders/%.4.bordermap $(RESDIR)/borders/%.borderpal
 	cat $^ > $@
