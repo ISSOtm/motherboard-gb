@@ -37,6 +37,9 @@ FXFLAGS += -j -f lh -i $(GameID) -k $(NewLicensee) -l $(OldLicensee) -m $(MBCTyp
 ASMFILES := $(wildcard $(SRCDIR)/*.asm)
 
 
+$(shell $(MKDIR) -p $(DEPSDIR))
+
+
 
 ################################################
 #                                              #
@@ -95,7 +98,6 @@ $(DEPSDIR)/%.d: $(OBJDIR)/%.o ;
 
 $(OBJDIR)/%.o: DEPFILE = $(DEPSDIR)/$*.d
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm dummy
-	@$(MKDIR) -p $(DEPSDIR)
 	@$(MKDIR) -p $(OBJDIR)
 	set -e; \
 	TMP_DEPFILE=$$(mktemp); \
@@ -112,6 +114,7 @@ SPACE +=
 # Yes this "space" hack is NEEDED. I don't like where I'm going anymore, either
 $(DEPSDIR)/all: $(patsubst $(SRCDIR)/%.asm,$(DEPSDIR)/%.d,$(ASMFILES))
 	cat $^ | sort | uniq | grep -vE "^($(subst .,\\.,$(subst $(SPACE),|,$(strip $(INITTARGETS))))): ;" > $@
+
 ifneq ($(MAKECMDGOALS),clean)
 include $(DEPSDIR)/all
 endif
