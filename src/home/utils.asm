@@ -202,6 +202,35 @@ Mapcpy::
     ret
 
 
+; Copies a tilemap to VRAM safely
+; @param hl Destination
+; @param de Source
+; @return hl, de Pointer to end of blocks
+; @return bc Zero
+; @return a Equal to h
+LCDMapcpy::
+ f LCDMapcpy
+    ld b, SCRN_Y_B
+.copyRow
+    ld c, SCRN_X_B
+.copyTile
+    wait_vram
+    ld a, [de]
+    ld [hli], a
+    inc de
+    dec c
+    jr nz, .copyTile
+    ld a, l
+    add a, SCRN_VX_B - SCRN_X_B
+    ld l, a
+    adc a, h
+    sub l
+    ld h, a
+    dec b
+    jr nz, .copyRow
+    ret
+
+
 ; Calculates a point's position relative to the camera
 ; @param hl Pointer to point struct (must contain Y then X, 1 byte subpixels then 1 word pixels)
 ; @return hl Advanced by 6
