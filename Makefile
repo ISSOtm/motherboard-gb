@@ -1,6 +1,7 @@
 
 .SUFFIXES:
 .DEFAULT_GOAL := all
+.SECONDEXPANSION:
 
 
 
@@ -53,6 +54,11 @@ $(shell $(MKDIR) -p $(DEPSDIR))
 
 # RGBGFX generates tilemaps with sequential tile IDs, which works fine for $8000 mode but not $8800 mode; `bit7ify.py` takes care to flip bit 7 so maps become $8800-compliant
 %.bit7.tilemap: src/tools/bit7ify.py %.tilemap
+	$^ $@
+
+# RGBGFX generates tilemaps with IDs starting at 0, which is not always the address things are loaded
+# Note: to generate `foo.90.offset.tilemap`, we want `foo.tilemap`, which is a tad difficult to specify in Make terms
+%.offset.tilemap: src/tools/offset_tilemap.py $$(dir $$@)$$(basename $$*).tilemap
 	$^ $@
 
 
