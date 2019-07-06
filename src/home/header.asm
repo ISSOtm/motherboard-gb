@@ -185,11 +185,32 @@ LicensedText:
     and a
     jr nz, .processLanguageMenu
 
+.repeatTitleScreen
     ld a, BANK(TitleScreen)
     rst bankswitch
     call TitleScreen
 
-    jp MainMenu
+    ld de, MainMenuHeader
+    ld b, BANK(MainMenuHeader)
+    call AddMenu
+.mainMenuLoop
+    rst wait_vblank
+    call ProcessMenus
+    ld a, [wNbMenus]
+    and a
+    jr nz, .mainMenuLoop
+
+    ld a, [wMenuClosingReason]
+    cp MENU_CANCELLED
+    jr z, .repeatTitleScreen
+
+    ldh a, [hSaveFilePresent] ; Either 0 or 1
+    rra
+    ccf
+    ld a, [wPreviousMenuItem]
+    adc a, 0
+    ; FIXME: tell whether to load a save file here
+    jp BeginOverworld
 
 
     ; Performs CRC verification

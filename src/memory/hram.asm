@@ -43,6 +43,12 @@ hSecondFXValue::
 
 UNION
 
+; Non-zero if a save file is present
+hSaveFilePresent::
+    db
+
+NEXTU
+
 ; The direction in which the camera moved on this frame
 ; -1 = left
 ;  0 = right

@@ -146,3 +146,10 @@ ENDM
     enum_elem LANGUAGE_FRENCH
     enum_elem LANGUAGE_JAPANESE
     enum_elem NB_LANGUAGES
+
+
+
+; Music tracks
+    enum_start
+    enum_elem MUSIC_MENU
+    enum_elem NB_MUSIC_TRACKS
