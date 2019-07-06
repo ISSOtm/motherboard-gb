@@ -1,7 +1,9 @@
-Update hardware.inc
-Fix SGB border (SuperFamiconv states that it can't allocate the colors in the palette?)
+Fix SGB border (too many tiles)
+Fix color fading (especially bad on SGB)
 Fix color layout on language menu (perhaps also on main menu)
 * Transition out of title screen
+Make a more consistent system for facing directions
+Store less NPC data in RAM
 Make player interact with what's in front of them instead of at their feet
 Language features (different strings)
 Main menu (finish it)
@@ -9,5 +11,3 @@ Dynamic collision detection (source some collision mappings from RAM and modify 
 Finish overlap fix
 Pause menu
 Compress title screen XOR masks and unpack 'em to WRAM (should be done late, since it might crush uninitialized memory exceptions, and isn't very invasive)
-
-Bring the boilerplate lib changes upstream
