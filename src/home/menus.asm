@@ -59,11 +59,9 @@ ProcessMenus::
     ld a, [wNbMenus]
     and a
     ret z
-    ld b, a
 
     ld hl, wMenu0
-    ld de, sizeof_Menu
-    ld a, b ; Get back nb of menus
+    ld bc, sizeof_Menu
     dec a
     call GetNthStruct
     ld a, [hli]
