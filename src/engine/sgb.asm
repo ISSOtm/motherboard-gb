@@ -11,14 +11,15 @@ DisablePalettesPacket:
 
 NB_BORDER_TILES = 1
 CompressedBorderTiles:
-;INCBIN "res/sgb/borders/tetbits.borderchr.pb16"
+INCBIN "res/sgb/borders/tetbits.borderchr.pb16"
 TransferBorderTilesPacket:
     sgb_packet CHR_TRN, 1, %00 ; BG tiles, $00-7F
-    ; A second packet might be needed if more than $80 tiles are transferred
+TransferBorderTilesPacket2:
+    sgb_packet CHR_TRN, 1, %01 ; BG tiles, $80-FF
 
 BORDER_ATTRIBUTE_SIZE = $880
 CompressedBorderAttributes:
-;INCBIN "res/sgb/borders/tetbits.borderattr.pb16"
+INCBIN "res/sgb/borders/tetbits.borderattr.pb16"
 TransferBorderAttributesPacket:
     sgb_packet PCT_TRN, 1
 
@@ -76,17 +77,27 @@ DoSGBSetup::
     inc a ; ld a, 1
     ldh [hIsSGB], a
     rst wait_vblank
-    call SGBDelay ; FIXME: remove this once what's below is finished
 
-IF 0
     ; Now, send the border while the static screen is being shown
     ld de, CompressedBorderTiles
     ld hl, vSGBTransferArea
-    ld b, NB_BORDER_TILES * 16 / 16
+    ld b, 0 ; $1000 bytes
     call pb16_unpack_block
+    push de
     call FillScreenWithSGBMap ; Also re-enables display and sets up render params
     rst wait_vblank ; Wait for the first blank frame to display; the transfer will start at the end of the following frame
     ld hl, TransferBorderTilesPacket
+    call SendPackets
+    xor a
+    ldh [hLCDC], a
+    rst wait_vblank
+    pop de
+    ld hl, vSGBTransferArea
+    ld b, 0 ; FIXME: hardcoded for the time being
+    call pb16_unpack_block
+    call SetupSGBLCDC
+    rst wait_vblank
+    ld hl, TransferBorderTilesPacket2
     call SendPackets
     xor a
     ldh [hLCDC], a
@@ -104,13 +115,13 @@ IF 0
     xor a
     ldh [hLCDC], a
     rst wait_vblank
-ENDC
+
     ; Same thing!
     ld de, CompressedAttributeFiles
     ld hl, vSGBTransferArea
     ld b, (90 * NB_ATTRIBUTE_FILES + 89) / 16 ; + (90 - 1) to round up
     call pb16_unpack_block
-    call FillScreenWithSGBMap ; FIXME: restore to SetupSGBLCDC once above is complete
+    call SetupSGBLCDC
     rst wait_vblank
     ld hl, TransferAttributeFilesPacket
     call SendPackets
