@@ -1,20 +1,10 @@
 
 SECTION "Menu system", ROM0
 
-; One of the menu actions
-MenuAddNew:
-    ld hl, wMenuAction+1
-    ld a, [hli]
-    ld b, a
-    ld a, [hli]
-    ld h, [hl]
-    ld l, a
-    ; Fallthrough to AddMenu
-
-
 ; Adds a menu on top of the menu stack
 ; @param de A pointer to the menu's header in ROM
 ; @param b  The bank where the menu's header is located
+; @destroy Loaded ROM bank
 AddMenu::
     ld a, b
     rst bankswitch
@@ -288,6 +278,21 @@ MenuCancel:
     ld [wMenuClosingReason], a
 
 MenuDoNothing: ; Stub for menu actions that do nothing
+    ret
+
+; One of the menu actions
+MenuAddNew:
+    ld hl, wMenuAction+1
+    ld a, [hli]
+    ld b, a
+    ld a, [hli]
+    ld d, [hl]
+    ld e, a
+    ldh a, [hCurROMBank]
+    push af
+    call AddMenu
+    pop af
+    rst bankswitch
     ret
 
 
