@@ -7,20 +7,5 @@
 
     "eslint.enable": false,
 
-    "hgbasm.analysis.globalLabelOffsets": "hover",
-    "hgbasm.analysis.globalLabelSizes": "codelens",
-    "hgbasm.analysis.localLabelOffsets": "hover",
-    "hgbasm.analysis.localLabelSizes": "codelens",
-    "hgbasm.analysis.sectionSizes": "codelens",
-    "autoComplete.functions": false,
-    "autoComplete.instructions": false,
-    "autoComplete.keywords": false,
-    "autoComplete.labels": true,
-    "autoComplete.macros": true,
-    "autoComplete.numberEquates": true,
-    "autoComplete.predefines": true,
-    "autoComplete.regions": false,
-    "autoComplete.sets": true,
-    "autoComplete.stringEquates": true,
-    "hgbasm.project.configPath": "./gbconfig.json",
+    "hgbasm.project.configPath": "./gbconfig.json"
 }
