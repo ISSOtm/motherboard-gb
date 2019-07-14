@@ -50,7 +50,7 @@
             "hexLetterCase": "uppercase",
             "keywordCase": "uppercase",
             "opcodeCase": "lowercase",
-            "psuedoOpCase": "lowercase",
+            "pseudoOpCase": "lowercase",
             "regionCase": "uppercase",
             "registerCase": "lowercase",
             "tabSize": 4,
