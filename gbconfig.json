@@ -2,9 +2,9 @@
     "analyzer": {
         "settings": {
             "globalLabelOffsets": "hover",
-            "globalLabelSizes": "codelens",
+            "globalLabelSizes": "hover",
             "localLabelOffsets": "hover",
-            "localLabelSizes": "codelens",
+            "localLabelSizes": "hover",
             "sectionSizes": "codelens"
         }
     },
