@@ -43,11 +43,25 @@ hSecondFXValue::
 
 UNION
 
+; Title screen
+
+; Index in the table below, fade stops if 
+hTitleScreenFadeIndex::
+    db
+hTitleScreenFadeTable::
+    ds 7
+
+NEXTU
+
+; Main menu
+
 ; Non-zero if a save file is present
 hSaveFilePresent::
     db
 
 NEXTU
+
+; Redrawing vars
 
 ; The direction in which the camera moved on this frame
 ; -1 = left
@@ -98,6 +112,8 @@ hRedrawRowCount::
 
 NEXTU
 
+; NPC draw vars
+
 ; Remaining OAM entries to write in the current NPC
 hNPCRemainingEntries::
     db
@@ -111,6 +127,8 @@ hNPCAttr::
     db
 
 NEXTU
+
+; Map loading
 
 ; Number of NPCs remaining to load
 hLoadingRemainingNPCs::
@@ -126,10 +144,14 @@ hLoadingNPCBaseTileID::
 
 NEXTU
 
+; Player overlap fix buffer
+
 hPlayerShiftBytes::
     ds 16
 
 NEXTU
+
+; Cutscene engine
 
 ; Currently executed cutscene command
 ; Only bit 7 is considered, to check if the command should be made instant
@@ -138,6 +160,8 @@ hCutsceneCurrentCommand::
     db
 
 NEXTU
+
+; Trigger processing
 
 ; Point at which to search for a trigger (SearchTrigger)
 hTriggerSearchPoint::
@@ -158,6 +182,8 @@ hTriggerFoundTypes::
 
 NEXTU
 
+; Language selection menu
+
 ; Offset of the cursor in the language selection menu
 hLangSelMenuCursorPos::
     db
@@ -171,6 +197,8 @@ hLangSelMenuPalette::
     db
 
 NEXTU
+
+; Collision'd movement
 
 ; Position of the hitbox that's being moved
 hMovementPosition::
