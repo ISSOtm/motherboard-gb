@@ -403,7 +403,7 @@ PrintVWFChar::
     ; Restore ROM bank
     ld a, [hld]
     rst bankswitch
-    
+
     ; Read new src ptr
     ld a, [hld]
     ld l, [hl]
@@ -458,20 +458,6 @@ TextDelay:
     ret
 
 
-TextSetLanguage:
-    ld de, wTextCharset
-    ld a, [de]
-    ld b, a
-    ld [wPreviousLanguage], a
-    ld a, b
-    and $0F
-    ld b, a
-    ld a, [hli]
-    swap a
-    and $F0
-    or b
-    jr _TextSetCharset
-
 TextRestoreLanguage:
     ld de, wTextCharset
     ld a, [de]
@@ -479,20 +465,6 @@ TextRestoreLanguage:
     ld b, a
     ld a, [wPreviousLanguage]
     and $F0
-    or b
-    jr _TextSetCharset
-
-TextSetDecoration:
-    ld de, wTextCharset
-    ld a, [de]
-    ld b, a
-    ld [wPreviousDecoration], a
-    ld a, b
-    and $F0
-    ld b, a
-    ld a, [hli]
-    and $0F
-    or b
     jr _TextSetCharset
 
 TextRestoreDecoration:
@@ -502,9 +474,29 @@ TextRestoreDecoration:
     ld b, a
     ld a, [wPreviousDecoration]
     and $0F
-    or b
+    jr _TextSetCharset
 
+TextSetDecoration:
+    ld de, wTextCharset
+    ld a, [de]
+    ld [wPreviousDecoration], a
+    and $F0
+    ld b, a
+    ld a, [hli]
+    and $0F
+    jr _TextSetCharset
+
+TextSetLanguage:
+    ld de, wTextCharset
+    ld a, [de]
+    ld [wPreviousLanguage], a
+    and $0F
+    ld b, a
+    ld a, [hli]
+    swap a
+    and $F0
 _TextSetCharset:
+    or b
     ld [de], a
     jr PrintNextCharInstant
 
