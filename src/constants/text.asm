@@ -16,14 +16,14 @@ TEXT_NEWLINE_CAPACITY = 10
 
     enum_start
     enum_elem TEXT_NUL ; Terminator
+    enum_elem TEXT_JUMP
+    enum_elem TEXT_CALL
     enum_elem TEXT_SET_LANG
     enum_elem TEXT_RESTORE_LANG
     enum_elem TEXT_SET_DECORATION
     enum_elem TEXT_RESTORE_DECORATION
     enum_elem TEXT_SET_COLOR
     enum_elem TEXT_BLANKS
-    enum_elem TEXT_JUMP
-    enum_elem TEXT_CALL
     enum_elem TEXT_DELAY
     enum_elem TEXT_NEWLINE ; '\n'
     enum_elem TEXT_WAITBUTTON

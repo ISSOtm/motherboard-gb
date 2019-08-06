@@ -435,14 +435,14 @@ PrintVWFChar::
 
 
 .controlCharFuncs
+    dw TextJumpTo ; Jump must be in first position
+    dw TextCall ; Call must be in second position
     dw TextSetLanguage
     dw TextRestoreLanguage
     dw TextSetDecoration
     dw TextRestoreDecoration
     dw TextSetColor
     dw TextPrintBlank
-    dw TextJumpTo
-    dw TextCall
     dw TextDelay
     dw TextNewline
     dw TextWaitButton
@@ -630,7 +630,7 @@ TextWaitButton:
     ; Ensure the engine reacts on the very next frame to allow swallowing buttons
     ld a, 1
     ld [wTextNextLetterDelay], a
-    ; We know that text is running, so it's fine to overwrite this
+    ; We know that text is running, so it's fine to overwrite bit 7
     ld a, $40
     ld [wTextPaused], a
     ; Decrement src ptr so this char keeps getting read

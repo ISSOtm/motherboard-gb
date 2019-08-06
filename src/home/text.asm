@@ -51,13 +51,12 @@ OpenTextbox::
     ld hl, hFastCopyNbReq
     inc [hl]
     and $7F
-.noWrap
     ldh [hFastCopyLowByte], a
 
     ; Set up textbox's layout
     ; Row 0
     ld hl, vTextboxTilemap
-    lb bc, (vTextboxBorderTiles & $FF0) >> 4, SCRN_X_B - 2
+    lb bc, LOW(vTextboxBorderTiles / 16), SCRN_X_B - 2
     ; UL corner (00)
     wait_vram
     ld a, b
@@ -74,20 +73,18 @@ OpenTextbox::
     ld l, LOW(vTextboxTilemap + SCRN_VX_B)
     ; Left edge (03)
     inc b
-    ; wait_vram
     ld a, b
     ld [hli], a
     ; Middle
-    ld bc, SCRN_X_B - 2
+    lb bc, 0, SCRN_X_B - 2
     call LCDMemsetSmallFromB
     ; Right edge (04)
     wait_vram
-    ld a, (vTextboxBorderTiles & $FF0) >> 4 + 4
+    ld a, LOW(vTextboxBorderTiles / 16) + 4
     ld [hl], a
     ; Row 2
     ld l, LOW(vTextboxTilemap + SCRN_VX_B * 2)
     ; Left edge (03)
-    ; wait_vram
     dec a
     ld [hli], a
     ; Middle
@@ -95,7 +92,7 @@ OpenTextbox::
     call LCDMemsetSmallFromB
     ; Right edge (04)
     wait_vram
-    ld a, (vTextboxBorderTiles & $FF0) >> 4 + 4
+    ld a, LOW(vTextboxBorderTiles / 16) + 4
     ld [hl], a
     ; Row 3
     ld l, LOW(vTextboxTilemap + SCRN_VX_B * 3)
@@ -105,15 +102,15 @@ OpenTextbox::
     ; Lower edge (06)
     inc a
     ld c, SCRN_X_B - 2
-    call LCDMemsetSmall
+    call LCDMemsetSmall ; Copies A to B
     ; LR corner (07)
     inc b
     ld [hl], b
 
-    ld a, (vVWFTiles - $8000) / 16
+    ld a, (vVWFTiles - _VRAM) / 16
     ld [wWrapTileID], a
 
-    ld a, $70 ; Display 4 tiles
+    ld a, SCRN_Y - 4 * 8 ; Display 4 tiles
     ld [wTextboxScanline], a
 
     ldh a, [hIsSGB]
