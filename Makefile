@@ -80,13 +80,6 @@ clean:
 	-rm -rf $(CLEANTARGETS)
 .PHONY: clean
 
-# `rebuild`: Build everything from scratch
-# It's important to do these two in order if we're using more than one job
-rebuild:
-	$(MAKE) clean
-	$(MAKE) all
-.PHONY: rebuild
-
 # `dummy` is a dummy target to build the resource files necessary for RGBASM to not fail on compilation
 # It's made an actual file to avoid an infinite compilation loop
 # INITTARGETS is defined by the resource Makefiles
