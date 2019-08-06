@@ -387,18 +387,16 @@ PrintVWFChar::
     ; Check if stack is empty
     ld hl, wTextStackSize ; Ok to trash hl, it doesn't matter anyways
     ld a, [hl]
-    add a, a ; Assuming this can't be > $7F (shouldn't be > 8 anyways)
+    add a, a ; Assuming this can't be > $7F (shouldn't be > TEXT_STACK_CAPACITY anyways)
     jr z, .flushAndFinish
 
     add a, [hl] ; *3
     dec [hl] ; Decrement entry count
-    add a, LOW(wTextStack)
+    add a, LOW(wTextStack - 1)
     ld l, a
-    adc a, HIGH(wTextStack)
+    adc a, HIGH(wTextStack - 1)
     sub l
     ld h, a
-    ; hl points to first byte of free entry, so decrement
-    dec hl
 
     ; Restore ROM bank
     ld a, [hld]
@@ -533,13 +531,15 @@ TextPrintBlank:
     jr PrintNextCharInstant
 
 
-; Sets text ptr to given location (must be within same bank!)
+; Sets text ptr to given location
 TextJumpTo:
     ld a, [hli]
-    rst bankswitch
+    ld b, a
     ld a, [hli]
     ld h, [hl]
     ld l, a
+    ld a, b
+    rst bankswitch
     jr PrintNextCharInstant
 
 ; Start printing a new string, then keep writing this one
@@ -550,34 +550,36 @@ TextCall:
     call nc, TextStackOverflowError
 
     ; Read target ptr
-    ld b, a ; Save current size for later (to get ptr to 1st free entry)
     inc a ; Increase stack size
     ld [wTextStackSize], a
 
+    ; Get ptr to end of 1st empty entry
+    ld b, a
+    add a, a
+    add a, b
+    add a, LOW(wTextStack - 1)
+    ld c, a
+    adc a, HIGH(wTextStack - 1)
+    sub c
+    ld b, a
+    ; Save ROM bank immediately, as we're gonna bankswitch
+    ldh a, [hCurROMBank]
+    ld [bc], a
+    dec bc
+
     ; Get target ptr
-    ld a, [hli]
-    rst bankswitch
     ld a, [hli]
     ld e, a
     ld a, [hli]
     ld d, a
+    ld a, [hli]
+    rst bankswitch
 
-    ; Get ptr to stack top (1st empty entry)
-    ld a, b
-    add a, a
-    add a, b
-    add a, LOW(wTextStack)
-    ld c, a
-    adc a, HIGH(wTextStack)
-    sub c
-    ld b, a
-    ld a, l
-    ld [bc], a
-    inc bc
+    ; Save src ptr onto stack
     ld a, h
     ld [bc], a
-    inc bc
-    ldh a, [hCurROMBank]
+    dec bc
+    ld a, l
     ld [bc], a
 
     ; Get new src ptr

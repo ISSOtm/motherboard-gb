@@ -4,7 +4,8 @@ TEXT_NEW_STR  equ 1
 
 
 ; Number of elements the text stack has room for
-; Ensure to never have more!
+; Having more will cause a soft crash
+; This must not exceeed $7F, as the return logic discards bit 7 when checking for zero
 TEXT_STACK_CAPACITY = 8
 
 ; IMPORTANT NOTE REGARDING NEWLINES!!!
