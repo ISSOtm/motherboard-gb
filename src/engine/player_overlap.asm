@@ -668,7 +668,9 @@ REPT 76 / 4
     ld a, b
     ld [hli], a
 ENDR
+    di
     ld sp, wSPBuffer
     pop hl
+    ei ; Takes effect after the next instruction
     ld sp, hl
     ret
