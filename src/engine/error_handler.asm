@@ -75,7 +75,37 @@ _ErrorHandler:
     ld [rBGP], a
     ; Load SGB palette as well
     ld hl, ErrorSGBPal
-    call SendPacketNoDelay
+    xor a
+    ldh [rP1], a
+    ld a, $30
+    ldh [rP1], a
+
+    ld b, SGB_PACKET_SIZE
+.sendByte
+    ld d, 8 ; 8 bits in a byte
+    ld a, [hli] ; Read byte to send
+    ld e, a
+
+.sendBit
+    ld a, $10 ; 1 bits are sent with $10
+    rr e  ; Rotate d and get its lower bit, two birds in one stone!
+    jr c, .bitSet
+    add a, a ; 0 bits are sent with $20
+.bitSet
+    ldh [rP1], a
+    ld a, $30 ; Terminate pulse
+    ldh [rP1], a
+    dec d
+    jr nz, .sendBit
+
+    dec b
+    jr nz, .sendByte
+
+    ; Packets are terminated by a "STOP" 0 bit
+    ld a, $20
+    ldh [rP1], a
+    ld a, $30
+    ldh [rP1], a
 
     xor a
     ldh [rSCY], a
@@ -114,10 +144,38 @@ _ErrorHandler:
     and a
     jr nz, .copyUwU
 
-    push de
     ld hl, ErrorSGBLayout
-    call SendPacketNoDelay
-    pop de
+    xor a
+    ldh [rP1], a
+    ld a, $30
+    ldh [rP1], a
+
+    ld b, SGB_PACKET_SIZE
+.sendByte2
+    ld d, 8 ; 8 bits in a byte
+    ld a, [hli] ; Read byte to send
+    ld e, a
+
+.sendBit2
+    ld a, $10 ; 1 bits are sent with $10
+    rr e  ; Rotate d and get its lower bit, two birds in one stone!
+    jr c, .bitSet2
+    add a, a ; 0 bits are sent with $20
+.bitSet2
+    ldh [rP1], a
+    ld a, $30 ; Terminate pulse
+    ldh [rP1], a
+    dec d
+    jr nz, .sendBit2
+
+    dec b
+    jr nz, .sendByte2
+
+    ; Packets are terminated by a "STOP" 0 bit
+    ld a, $20
+    ldh [rP1], a
+    ld a, $30
+    ldh [rP1], a
 
     ld a, LCDCF_ON | LCDCF_BGON
     ld [rLCDC], a
@@ -133,6 +191,7 @@ _ErrorHandler:
     dec b
     jr nz, .delayBetweenUwUs
 
+    ld de, SeriousUwU
     ldcoord hl, 8, 0, _SCRN0
 .copySeriousUwU
     ldh a, [rSTAT]
@@ -773,6 +832,7 @@ ErrorUwu:
     db "working VEWY HAWD to            "
     db "     fix this!     ",0
 
+SeriousUwU:
     db "                                "
     db "More seriously, I'm             "
     db "sorry, but the game             "
