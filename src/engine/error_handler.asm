@@ -58,10 +58,10 @@ _ErrorHandler:
 
     xor a
     ldh [rNR52], a
-    
+
     ldh a, [rLCDC]
-    bit 7, a
-    jr z, .lcdOff
+    add a, a
+    jr nc, .lcdOff
 .waitVBlank
     ld a, [rLY]
     cp SCRN_Y
