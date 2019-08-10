@@ -154,7 +154,16 @@ PrintVWFText::
     ; Reset position always, though
     xor a
     ld [wTextCurPixel], a
+    ; TODO: decrease remaining amount of pixels
 .dontFlush
+
+    ; Force buffer refill
+    ld a, LOW(wTextCharBufferEnd)
+    ld [wTextReadPtrLow], a
+    ; Initialize auto line-wrapper
+    ld a, [wTextLineLength]
+    inc a ; Last pixel of all chars is blank, so we can actually fit 1 extra
+    ld [wLineRemainingPixels], a
 
     ; Use black color by default (which is normally loaded into color #3)
     ld a, 3
@@ -171,6 +180,58 @@ PrintVWFText::
     ld [wTextNextLetterDelay], a
     ret
 
+FlushVWFBuffer::
+    push hl
+
+    ; Calculate ptr to next tile
+    ld a, [wTextCurTile]
+    swap a
+    ld d, a
+    and $F0
+    ld e, a
+    ld a, d
+    and $0F
+    add a, $80
+    ld d, a
+
+    ; Copy buffer 1 to VRAM, buffer 2 to buffer 1, and clear buffer 2
+    ld hl, wTextTileBuffer
+    ld bc, wTextTileBuffer + $10
+.copyByte
+    ldh a, [rSTAT]
+    and STATF_BUSY
+    jr nz, .copyByte
+    ; Write tile buf to VRAM
+    ld a, [hl]
+    ld [de], a
+    inc e ; Faster than inc de, guaranteed thanks to ALIGN[4]
+    ; Copy second tile to first one
+    ld a, [bc]
+    ld [hli], a
+    ; Clear second tile
+    xor a
+    ld [bc], a
+    inc c
+
+    ld a, l
+    cp LOW(wTextTileBuffer + $10)
+    jr nz, .copyByte
+
+    ; Go to next tile
+    ld hl, wTextCurTile
+    ld a, [hl]
+    inc a
+    and $7F
+    jr nz, .noWrap
+    ld a, [wWrapTileID]
+.noWrap
+    ld [hl], a
+
+    ld hl, wFlushedTiles
+    inc [hl]
+    pop hl
+    ret
+
 ; Prints a VWF char (or more), applying delay if necessary
 ; Might print more than 1 char, eg. if wTextLetterDelay is zero
 ; Sets the high byte of the source pointer to $FF when finished
@@ -180,12 +241,7 @@ PrintVWFChar::
     ld hl, wTextNextLetterDelay
     ld a, [hl]
     and a
-    jr z, .delayFinished
-    dec a
-    ld [hl], a
-    ret
-
-.delayFinished
+    jr nz, .delay
     ; xor a
     ld [wFlushedTiles], a
 
@@ -193,12 +249,391 @@ PrintVWFChar::
     ldh a, [hCurROMBank]
     push af
 
-    ; Get ready to read char
+    ld a, BANK(_PrintVWFChar)
+    rst bankswitch
+    call _PrintVWFChar
+
+    pop af
+    rst bankswitch
+    ret
+
+.delay
+    dec a
+    ld [hl], a
+    ret
+
+
+RefillerOnlyControlChar:
+    ld bc, _RefillCharBuffer
+    push bc
+
+    push hl
+    add a, LOW(RefillerOnlyControlChars)
+    ld l, a
+    ld a, $FF ; If we're here, the value in A is negative
+    adc a, HIGH(RefillerOnlyControlChars)
+    ld h, a
+    ld a, [hli]
+    ld b, [hl]
+    ld c, a
+    pop hl
+    push bc
+    ret
+
+; Refills the char buffer, assuming at least half of it has been read
+; Newlines are injected into the buffer to implement auto line-wrapping
+; @param hl The current read ptr into the buffer
+RefillCharBuffer:
+    ld de, wTextCharBuffer
+    ; First, copy remaining chars into the buffer
+    ld a, LOW(wTextCharBufferEnd)
+    sub l
+    ld c, a
+    jr z, .charBufferEmpty
+.copyLeftovers
+    ld a, [hli]
+    ld [de], a
+    inc e
+    dec c
+    jr nz, .copyLeftovers
+.charBufferEmpty
+
+    ; Cache charset ptr to speed up calculations
+    ld a, [wTextCharset]
+    ld [wRefillerCharset], a
+    add a, a
+    add a, LOW(CharsetPtrs)
+    ld l, a
+    adc a, HIGH(CharsetPtrs)
+    sub l
+    ld h, a
+    ld a, [hli]
+    add a, 8 ; Code later on will want a +8 offset
+    ld [wCurCharsetPtr], a
+    ld a, 0 ; If you try to optimize this to `xor a` I will kick you in the nuts
+    adc a, [hl]
+    ld [wCurCharsetPtr+1], a
+
+    ; Get ready to read chars into the buffer
     ld hl, wTextSrcBank
     ld a, [hli]
     rst bankswitch
     ld a, [hli]
     ld h, [hl]
+    ld l, a
+
+_RefillCharBuffer:
+.refillBuffer
+    ld a, [hli]
+    add a, a ; Test bit 7 and prepare for control char handling
+    jr z, .tryReturning
+    jr c, RefillerOnlyControlChar
+    rra ; Restore A
+    ld [de], a
+    sub " "
+    jr c, .controlChar ; The refiller needs to be aware of some control chars
+.here
+
+    ; Add char length to accumulated one
+    push hl
+    ld hl, wCurCharsetPtr
+    ld c, [hl]
+    inc hl
+    ld b, [hl]
+    ld l, a
+    ld h, 0
+    add hl, hl
+    add hl, hl
+    add hl, hl
+    add hl, bc ; Char * 8 + base + 8
+    ld c, a ; Stash this for later
+    ld b, 0
+    add hl, bc ; Char * 9 + base + 8
+    ld a, [wLineRemainingPixels]
+    sub a, [hl]
+.insertCustomSize
+    jr nc, .noNewline
+    ld b, a ; Stash this for later
+    ; Line length was overflowed, inject newline into buffer
+    ; Get ptr to newline injection point
+    ld h, d ; ld h, HIGH(wTextCharBuffer)
+    ld a, [wNewlinePtrLow]
+    ld l, a
+    ; Dashes aren't overwritten on newlines, instead the newline is inserted right after
+    ld a, [hl]
+    cp " "
+    ld d, "\n"
+    jr z, .overwritingNewline
+    ld a, e
+    cp LOW(wTextCharBufferEnd - 1)
+    jr z, .bufferFull
+    inc e ; We're going to insert an extra char unless that would overflow the buffer
+.bufferFull
+.copyNewlinedChars
+    ld a, d
+    ld d, [hl]
+    ld [hli], a
+    ld a, e ; Stop when we're about to write the last char
+    cp l
+    jr nz, .copyNewlinedChars
+    ; But write it, of course!
+.overwritingNewline
+    ld [hl], d
+    ; Restore dest ptr high byte
+    ld d, h ; ld d, HIGH(wTextCharBuffer)
+    ; Get amount of pixels remaining on next line after we move a word to it
+    ld a, [wNewlineRemainingPixels]
+    sub b ; Get pixels that word has
+    ld b, a
+    ld a, [wTextLineLength]
+    sub b ; Subtract that amount from a whole line's length
+.noNewline
+    pop hl
+    ld [wLineRemainingPixels], a
+
+    ld a, c
+    ; If the character is a dash or a space, a newline can be inserted
+    and a ; cp " " - " "
+    jr z, .canNewline
+    inc e ; This increment is also shared by the main loop
+    cp "-" - " " ; Dashes aren't *overwritten* by the newline, instead it's inserted after
+    ld a, e ; The increment has to be placed in an awkward way because it alters flags
+    jr z, .canNewlineAfter
+
+.afterControlChar
+    ld a, e
+    cp LOW(wTextCharBufferEnd)
+    jr nz, .refillBuffer
+
+.done
+    ; Write src ptr for later
+    ld a, l
+    ld [wTextSrcPtr], a
+    ld a, h
+    ld [wTextSrcPtr+1], a
+    ldh a, [hCurROMBank]
+    ld [wTextSrcBank], a
+
+    ld a, BANK(_PrintVWFChar)
+    rst bankswitch
+    ; Restart printer's reading
+    ld hl, wTextCharBuffer
+    ret
+
+
+.tryReturning
+    ld hl, wTextStackSize
+    ld a, [hl]
+    ld b, a
+    add a, a
+    ld [de], a ; If we're returning, we will need to write that $00; otherwise it'll be overwritten
+    jr z, .done
+    dec b
+    ld [hl], b
+    add a, b ; a = stack size * 3 + 2
+    add a, LOW(wTextStack)
+    ld l, a
+    adc a, HIGH(wTextStack)
+    sub l
+    ld h, a
+    ld a, [hld]
+    rst bankswitch
+    ld a, [hld]
+    ld l, [hl]
+    ld h, a
+    jp .refillBuffer ; Too far to `jr`
+
+.controlChar
+    ld bc, .afterControlChar
+    push bc
+    inc e ; Otherwise the char isn't counted to be written!
+    push hl
+    add a, " "
+    add a, a ; Can't be zero because we handle that earlier
+    add a, LOW(RefillerControlChars - 2)
+    ld l, a
+    adc a, HIGH(RefillerControlChars - 2)
+    sub l
+    ld h, a
+    ld a, [hli]
+    ld b, [hl]
+    ld c, a
+    pop hl
+    push bc
+    ret
+
+
+.canNewline
+    ld a, e
+    inc e
+.canNewlineAfter
+    ld [wNewlinePtrLow], a
+    ld a, [wLineRemainingPixels]
+    ld [wNewlineRemainingPixels], a
+    jr .afterControlChar
+
+
+RefillerControlChars:
+    dw ReaderSetLanguage
+    dw ReaderRestoreLanguage
+    dw ReaderSetDecoration
+    dw ReaderRestoreDecoration
+    dw Reader2ByteNop
+    dw ReaderPrintBlank
+    dw Reader2ByteNop
+    dw Reader1ByteNop
+    dw ReaderClear
+    dw ReaderNewline
+    dw Reader1ByteNop
+
+    ; The base of the table is located at its end
+    ; Unusual, I know, but it works better!
+    dw ReaderJumpTo
+    dw ReaderCall
+RefillerOnlyControlChars:
+
+Reader2ByteNop:
+    ld a, [hli]
+    ld [de], a
+    inc e
+Reader1ByteNop:
+    ret
+
+ReaderSetLanguage:
+    ld a, [wRefillerCharset]
+    ld c, a
+    ld [wRefillerPrevLanguage], a
+    ld a, [hli]
+    ld [de], a
+    inc e
+    swap a
+    xor c
+    and $F0
+    jr ReaderUpdateCharset
+
+ReaderRestoreLanguage:
+    ld a, [wRefillerCharset]
+    and $0F
+    ld c, a
+    ld a, [wRefillerPrevLanguage]
+    and $F0
+    jr ReaderUpdateCharset
+
+ReaderSetDecoration:
+    ld a, [wRefillerCharset]
+    ld c, a
+    ld [wRefillerPrevDecoration], a
+    ld a, [hli]
+    ld [de], a
+    inc e
+    xor c
+    and $0F
+    jr ReaderUpdateCharset
+
+ReaderRestoreDecoration:
+    ld a, [wRefillerCharset]
+    and $F0
+    ld c, a
+    ld a, [wRefillerPrevDecoration]
+    and $0F
+    ; Fall through
+ReaderUpdateCharset:
+    xor c
+    ld [wRefillerCharset], a
+    add a, a
+    add a, LOW(CharsetPtrs)
+    ld c, a
+    adc a, HIGH(CharsetPtrs)
+    sub c
+    ld b, a
+    ld a, [bc]
+    ld [wCurCharsetPtr], a
+    inc bc
+    ld a, [bc]
+    ld [wCurCharsetPtr+1], a
+    ret
+
+ReaderPrintBlank:
+    pop bc ; We're not gonna return because we're gonna insert a custom size instead
+    ld a, [hli] ; Read number of blanks
+    ld [de], a
+    ; inc e ; Don't increment dest ptr because the code path we'll jump into will do it
+    ld c, a
+    ld a, [wLineRemainingPixels]
+    sub c
+    ; We'll be jumping straight in the middle of some code path, make sure not to break it
+    push hl
+    ld c, "A" ; Make sure we won't get a newline
+    jp _RefillCharBuffer.insertCustomSize ; Too far to `jr`
+
+ReaderClear:
+    ; For the purpose of line length counting, newline and clearing are the same
+ReaderNewline:
+    ; Reset line length, since we're forcing a newline
+    ld a, [wTextLineLength]
+    ld [wLineRemainingPixels], a
+    ret
+
+; Sets text ptr to given location
+ReaderJumpTo:
+    ld a, [hli]
+    ld b, a
+    ld a, [hli]
+    ld h, [hl]
+    ld l, a
+    ld a, b
+    rst bankswitch
+    ret
+
+; Start printing a new string, then keep writing this one
+; NOTE: avoids corruption by preventing too much recursion, but this shouldn't happen at all
+ReaderCall:
+    ld a, [wTextStackSize]
+    cp TEXT_STACK_CAPACITY
+    call nc, TextStackOverflowError
+
+    ; Read target ptr
+    inc a ; Increase stack size
+    ld [wTextStackSize], a
+
+    ; Get ptr to end of 1st empty entry
+    ld b, a
+    add a, a
+    add a, b
+    add a, LOW(wTextStack - 1)
+    ld c, a
+    adc a, HIGH(wTextStack - 1)
+    sub c
+    ld b, a
+    ; Save ROM bank immediately, as we're gonna bankswitch
+    ldh a, [hCurROMBank]
+    ld [bc], a
+    dec bc
+
+    ; Swap src ptrs
+    ld a, [hli]
+    ld [de], a ; Use current byte in char buffer as scratch
+    ; Save src ptr now (will require incrementing twice when returning but eh)
+    ld a, h
+    ld [bc], a
+    dec bc
+    ld a, l
+    ld [bc], a
+    ; Read new src ptr
+    ld a, [hli]
+    ld h, [hl]
+    ld l, a
+    ; Perform bankswitch now that all bytecode has been read
+    ld a, [de]
+    rst bankswitch
+    ret
+
+
+SECTION "VWF ROMX functions + data", ROMX
+
+_PrintVWFChar:
+    ld h, HIGH(wTextCharBuffer)
+    ld a, [wTextReadPtrLow]
     ld l, a
 
 .setDelayAndNextChar
@@ -207,10 +642,17 @@ PrintVWFChar::
     ld [wTextNextLetterDelay], a
 
 .nextChar
+    ; First, check if the buffer is sufficiently full
+    ; Making the buffer wrap would be costly, so we're keeping a safety margin
+    ; Especially since control codes are multi-byte
+    ld a, l
+    cp LOW(wTextCharBufferEnd - 8)
+    call nc, RefillCharBuffer
+
     ; Read byte from string stream
     ld a, [hli]
     and a ; Check for terminator
-    jp z, .checkForReturn
+    jp z, .return
     cp " "
     jp c, .controlChar
 
@@ -249,66 +691,61 @@ PrintVWFChar::
     ; Get dest buffer ptr
     ld hl, wTextTileBuffer
 
-    ld c, 8
+    ld a, 8
 .printOneLine
+    ldh [hVWFRowCount], a
+
     ld a, [wTextCurPixel]
     ld b, a
-    and a
+    and a ; Check now if shifting needs to happen
 
     ld a, [de]
     inc de
-    push de
 
-    ld e, 0
+    ld c, 0
     jr z, .doneShifting
 .shiftRight
     rra ; Actually `srl a`, since a 0 bit is always shifted in
-    rr e
+    rr c
     dec b
     jr nz, .shiftRight
 .doneShifting
-    ld d, a
+    ld b, a
 
     ld a, [wTextColorID]
     rra
     jr nc, .noLSB
-    ld a, d
+    ld a, b
     or [hl]
     ld [hl], a
 
-    ld a, l
-    add a, $10
-    ld l, a
-    ld a, e
+    set 4, l
+    ld a, c
     or [hl]
     ld [hl], a
-    ld a, l
-    sub $10
-    ld l, a
-.noLSB
-    inc hl
+    res 4, l
 
     ld a, [wTextColorID]
-    and 2
-    jr z, .noMSB
-    ld a, d
+    rra
+.noLSB
+    inc l
+
+    rra
+    jr nc, .noMSB
+    ld a, b
     or [hl]
     ld [hl], a
 
-    ld a, l
-    add a, $10
-    ld l, a
-    ld a, e
+    set 4, l
+    ld a, c
     or [hl]
     ld [hl], a
-    ld a, l
-    sub $10
-    ld l, a
+    res 4, l
 .noMSB
-    inc hl
+    inc l
 
-    pop de
-    dec c
+    ldh a, [hVWFRowCount]
+    dec a
     jr nz, .printOneLine
 
     ; Advance read by size
@@ -352,12 +789,15 @@ PrintVWFChar::
     jp z, .setDelayAndNextChar
     dec a
     ld [wTextNextLetterDelay], a
+    ; Write back new read ptr into buffer for next iteration
+    ld a, l
+    ld [wTextReadPtrLow], a
 
 .flushAndFinish
     ; Check if flushing is necessary
     ld a, [wTextCurPixel]
     cp 2
-    jr c, .flushingNotNeeded
+    ret c
 
     ld a, [wTextCurTile]
     swap a
@@ -370,43 +810,14 @@ PrintVWFChar::
     ld h, a
     ld de, wTextTileBuffer
     ld c, $10
-    call LCDMemcpySmall
-
-.flushingNotNeeded
-    ; Restore ROM bank
-    pop af
-    rst bankswitch
-    ret
+    jp LCDMemcpySmall ; Tail call
 
 
-.checkForReturn
+.return
     ; Tell caller we're done (if we're not, this'll be overwritten)
     ld a, $FF
     ld [wTextSrcPtr + 1], a
-
-    ; Check if stack is empty
-    ld hl, wTextStackSize ; Ok to trash hl, it doesn't matter anyways
-    ld a, [hl]
-    add a, a ; Assuming this can't be > $7F (shouldn't be > TEXT_STACK_CAPACITY anyways)
-    jr z, .flushAndFinish
-
-    add a, [hl] ; *3
-    dec [hl] ; Decrement entry count
-    add a, LOW(wTextStack - 1)
-    ld l, a
-    adc a, HIGH(wTextStack - 1)
-    sub l
-    ld h, a
-
-    ; Restore ROM bank
-    ld a, [hld]
-    rst bankswitch
-
-    ; Read new src ptr
-    ld a, [hld]
-    ld l, [hl]
-    ld h, a
-    jp .nextChar
+    jr .flushAndFinish
 
 
 .controlChar
@@ -435,8 +846,6 @@ PrintVWFChar::
 
 
 .controlCharFuncs
-    dw TextJumpTo ; Jump must be in first position
-    dw TextCall ; Call must be in second position
     dw TextSetLanguage
     dw TextRestoreLanguage
     dw TextSetDecoration
@@ -444,9 +853,9 @@ PrintVWFChar::
     dw TextSetColor
     dw TextPrintBlank
     dw TextDelay
-    dw TextNewline
     dw TextWaitButton
     dw TextClear
+    dw TextNewline
     dw TextHalt
 
 
@@ -528,63 +937,6 @@ TextPrintBlank:
     ld a, c
     and 7
     ld [wTextCurPixel], a
-    jr PrintNextCharInstant
-
-
-; Sets text ptr to given location
-TextJumpTo:
-    ld a, [hli]
-    ld b, a
-    ld a, [hli]
-    ld h, [hl]
-    ld l, a
-    ld a, b
-    rst bankswitch
-    jr PrintNextCharInstant
-
-; Start printing a new string, then keep writing this one
-; NOTE: avoids corruption by preventing too much recursion, but this shouldn't happen at all
-TextCall:
-    ld a, [wTextStackSize]
-    cp TEXT_STACK_CAPACITY
-    call nc, TextStackOverflowError
-
-    ; Read target ptr
-    inc a ; Increase stack size
-    ld [wTextStackSize], a
-
-    ; Get ptr to end of 1st empty entry
-    ld b, a
-    add a, a
-    add a, b
-    add a, LOW(wTextStack - 1)
-    ld c, a
-    adc a, HIGH(wTextStack - 1)
-    sub c
-    ld b, a
-    ; Save ROM bank immediately, as we're gonna bankswitch
-    ldh a, [hCurROMBank]
-    ld [bc], a
-    dec bc
-
-    ; Get target ptr
-    ld a, [hli]
-    ld e, a
-    ld a, [hli]
-    ld d, a
-    ld a, [hli]
-    rst bankswitch
-
-    ; Save src ptr onto stack
-    ld a, h
-    ld [bc], a
-    dec bc
-    ld a, l
-    ld [bc], a
-
-    ; Get new src ptr
-    ld h, d
-    ld l, e
     jr PrintNextCharInstant
 
 
@@ -671,59 +1023,7 @@ TextClear:
 
 
 
-FlushVWFBuffer::
-    push hl
-
-    ; Calculate ptr to next tile
-    ld a, [wTextCurTile]
-    swap a
-    ld d, a
-    and $F0
-    ld e, a
-    ld a, d
-    and $0F
-    add a, $80
-    ld d, a
-
-    ; Copy buffer 1 to VRAM, buffer 2 to buffer 1, and clear buffer 2
-    ld hl, wTextTileBuffer
-    ld bc, wTextTileBuffer + $10
-.copyByte
-    ldh a, [rSTAT]
-    and STATF_BUSY
-    jr nz, .copyByte
-    ; Write tile buf to VRAM
-    ld a, [hl]
-    ld [de], a
-    inc e ; Faster than inc de, guaranteed thanks to ALIGN[4]
-    ; Copy second tile to first one
-    ld a, [bc]
-    ld [hli], a
-    ; Clear second tile
-    xor a
-    ld [bc], a
-    inc c
-
-    ld a, l
-    cp LOW(wTextTileBuffer + $10)
-    jr nz, .copyByte
-
-    ; Go to next tile
-    ld hl, wTextCurTile
-    ld a, [hl]
-    inc a
-    and $7F
-    jr nz, .noWrap
-    ld a, [wWrapTileID]
-.noWrap
-    ld [hl], a
-
-    ld hl, wFlushedTiles
-    inc [hl]
-    pop hl
-    ret
-
-
+SECTION "Charset data", ROM0
 
 CharsetPtrs::
     dw LatinCharsetBasic

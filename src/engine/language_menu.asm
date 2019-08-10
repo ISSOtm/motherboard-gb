@@ -30,7 +30,9 @@ LanguageMenuInit:
     ld bc, SCRN_VX_B * SCRN_Y_B
     ; xor a
     rst memset
-    inc a ; ld a, 1
+    ld a, SCRN_X
+    ld [wTextLineLength], a
+    ; a is non-zero
     ld hl, LanguageMenuItems
     ld b, BANK(LanguageMenuItems)
     call PrintVWFText

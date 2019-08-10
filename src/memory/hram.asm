@@ -45,7 +45,7 @@ UNION
 
 ; Title screen
 
-; Index in the table below, fade stops if 
+; Index in the table below, fade stops if
 hTitleScreenFadeIndex::
     db
 hTitleScreenFadeTable::
@@ -224,8 +224,13 @@ hActiveColliders::
 ENDU
 
 ; Map height, in tiles
-; (For collision detection)
+; (Cached for collision detection)
 hMapHeight::
+    db
+
+
+; How many rows are left to be drawn in the current tile
+hVWFRowCount::
     db
 
 

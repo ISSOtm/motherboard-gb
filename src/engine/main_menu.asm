@@ -62,7 +62,9 @@ MainMenuInit:
     ; Force text to start at tile 1 or 2 so we have room to load more gfx
     inc a ; ld a, 1
     ld [wTextCurTile], a
-    ; ld a, 1
+    ld a, SCRN_X
+    ld [wTextLineLength], a
+    ; a is non-zero
     ld b, BANK(MainMenuItems)
     call PrintVWFText
     ld hl, _SCRN0 + 8 * SCRN_VX_B + 5
@@ -234,7 +236,9 @@ MusicPlayerInit:
     ld [wTextCurTile], a
     ld hl, MusicPlayerItems + 1
     ld b, BANK(MusicPlayerItems)
-    ld a, 1
+    ld a, SCRN_X
+    ld [wTextLineLength], a
+    ; a is non-zero
     call PrintVWFText
     ld hl, $9C43
     call SetPenPosition

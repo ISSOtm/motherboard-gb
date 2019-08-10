@@ -99,7 +99,9 @@ ENDR
     ld [wTextLetterDelay], a
     inc a ; ld a, 1
     ld [wWrapTileID], a
-    ; ld a, 1
+    ld a, SCRN_X
+    ld [wTextLineLength], a
+    ; a is non-zero
     ld b, BANK(LicensedText)
     ld hl, LicensedText
     call PrintVWFText

@@ -107,9 +107,6 @@ OpenTextbox::
     inc b
     ld [hl], b
 
-    ld a, (vVWFTiles - _VRAM) / 16
-    ld [wWrapTileID], a
-
     ld a, SCRN_Y - 4 * 8 ; Display 4 tiles
     ld [wTextboxScanline], a
 

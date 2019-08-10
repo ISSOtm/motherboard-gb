@@ -98,6 +98,12 @@ SetPlayerButtonMask:
     ret
 
 StartDrawingText:
+    ld a, (vVWFTiles - _VRAM) / 16
+    ld [wWrapTileID], a
+    ld [wTextCurTile], a ; Force current text tile to be in range
+    ld a, (SCRN_X_B - 4) * 8
+    ld [wTextLineLength], a
+
     read_bytecode_byte
     ld [wTextSrcPtr], a
     ld e, a

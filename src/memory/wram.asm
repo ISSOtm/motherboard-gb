@@ -338,13 +338,17 @@ wPreviousMenuItem::
     db
 
 
-SECTION "VWF engine memory", WRAM0,ALIGN[4]
+SECTION "VWF engine memory", WRAM0,ALIGN[6]
 
-; Align these buffers to perhaps HDMA them?
-; Also makes copying them faster (8-bit incs)
+wTextCharBuffer::
+    ds 64
+wTextCharBufferEnd::
+
+; This is ALIGN[6]
 wTextTileBuffer::
     ds $10 * 2
 
+; This is ALIGN[5]
 ; Format of entries: ptr(16bit LE), bank(8bit)
 wTextStack::
     ds TEXT_STACK_CAPACITY * 3
@@ -408,6 +412,31 @@ wPenStartingPosition::
 wPenPosition::
     dw
 wPenCurTile::
+    db
+
+; Low byte of the read ptr into wTextCharBuffer
+wTextReadPtrLow::
+    db
+
+; Length, in pixels, of the current text line
+wTextLineLength::
+    db
+wLineRemainingPixels::
+    db
+; Ptr to last newlineable location
+wNewlinePtrLow::
+    db
+; wLineRemainingPixels at the time wNewlinePtrLow is updated
+wNewlineRemainingPixels::
+    db
+; Charset ptr is cached by refiller to speed up reads
+wCurCharsetPtr::
+    dw
+wRefillerCharset::
+    db
+wRefillerPrevLanguage::
+    db
+wRefillerPrevDecoration::
     db
 
 
