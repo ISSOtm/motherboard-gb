@@ -332,7 +332,6 @@ _RefillCharBuffer:
     ld [de], a
     sub " "
     jr c, .controlChar ; The refiller needs to be aware of some control chars
-.here
 
     ; Add char length to accumulated one
     push hl
