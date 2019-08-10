@@ -280,6 +280,25 @@ RefillerOnlyControlChar:
     push bc
     ret
 
+RefillerControlChar:
+    ld bc, _RefillCharBuffer.afterControlChar
+    push bc
+    inc e ; Otherwise the char isn't counted to be written!
+    push hl
+    add a, " "
+    add a, a ; Can't be zero because we handle that earlier
+    add a, LOW(RefillerControlChars - 2)
+    ld l, a
+    adc a, HIGH(RefillerControlChars - 2)
+    sub l
+    ld h, a
+    ld a, [hli]
+    ld b, [hl]
+    ld c, a
+    pop hl
+    push bc
+    ret
+
 ; Refills the char buffer, assuming at least half of it has been read
 ; Newlines are injected into the buffer to implement auto line-wrapping
 ; @param hl The current read ptr into the buffer
@@ -331,7 +350,7 @@ _RefillCharBuffer:
     rra ; Restore A
     ld [de], a
     sub " "
-    jr c, .controlChar ; The refiller needs to be aware of some control chars
+    jr c, RefillerControlChar ; The refiller needs to be aware of some control chars
 
     ; Add char length to accumulated one
     push hl
@@ -387,8 +406,8 @@ _RefillCharBuffer:
     ld a, [wTextLineLength]
     sub b ; Subtract that amount from a whole line's length
 .noNewline
-    pop hl
     ld [wLineRemainingPixels], a
+    pop hl
 
     ld a, c
     ; If the character is a dash or a space, a newline can be inserted
@@ -441,25 +460,6 @@ _RefillCharBuffer:
     ld l, [hl]
     ld h, a
     jp .refillBuffer ; Too far to `jr`
-
-.controlChar
-    ld bc, .afterControlChar
-    push bc
-    inc e ; Otherwise the char isn't counted to be written!
-    push hl
-    add a, " "
-    add a, a ; Can't be zero because we handle that earlier
-    add a, LOW(RefillerControlChars - 2)
-    ld l, a
-    adc a, HIGH(RefillerControlChars - 2)
-    sub l
-    ld h, a
-    ld a, [hli]
-    ld b, [hl]
-    ld c, a
-    pop hl
-    push bc
-    ret
 
 
 .canNewline
