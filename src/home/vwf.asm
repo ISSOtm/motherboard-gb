@@ -1009,7 +1009,7 @@ TextClear:
     ldcoord hl, 1, 2, vTextboxTilemap
     ld bc, SCRN_X_B - 4
     call LCDMemsetSmallFromB
-    ld l, LOW(SCRN_VX_B * 2 + 2)
+    ld l, LOW(SCRN_VX_B * 2 + 2 + vTextboxTilemap)
     ld c, SCRN_X_B - 4
     call LCDMemsetSmallFromB
 
