@@ -757,12 +757,6 @@ _PrintVWFChar:
     pop hl
 
 .charPrinted
-    ; Save src ptr
-    ld a, l
-    ld [wTextSrcPtr], a
-    ld a, h
-    ld [wTextSrcPtr + 1], a
-
     ; Check if flushing needs to be done
     ld a, [wTextCurPixel]
     sub 8
