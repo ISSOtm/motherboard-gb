@@ -62,6 +62,7 @@ ENDM
     enum_elem ERROR_RPN_EXPRESSION
     enum_elem ERROR_MENU_STACK_OVERFLOW
     enum_elem ERROR_MENU_STACK_EMPTY
+    enum_elem ERROR_TEXT_BUFFER_OVERREAD
     enum_elem ERROR_UNKNOWN
 
 

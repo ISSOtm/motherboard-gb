@@ -417,6 +417,9 @@ wPenCurTile::
 ; Low byte of the read ptr into wTextCharBuffer
 wTextReadPtrLow::
     db
+; Where the refiller ended, ie. where the printer needs to stop
+wTextReadPtrEnd::
+    db
 
 ; Length, in pixels, of the current text line
 wTextLineLength::

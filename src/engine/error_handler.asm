@@ -32,6 +32,8 @@ MenuStackOverflowError::
     handle_error ERROR_MENU_STACK_OVERFLOW
 MenuStackEmptyError::
     handle_error ERROR_MENU_STACK_EMPTY
+TextBufferOverreadError::
+    handle_error ERROR_TEXT_BUFFER_OVERREAD
 
 ; Perform minimal init, and jump to error handler in ROMX
 ErrorHandler:
@@ -681,6 +683,8 @@ ErrorStrings:
     dstr "Menu stack overflow"
 .menuStackEmptyStr
     dstr "Menu stack empty"
+.textBufferOverreadStr
+    dstr "Text buf overread"
 .unknownErrorStr
     dstr "Unk err $"
 

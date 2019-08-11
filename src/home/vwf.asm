@@ -126,6 +126,15 @@ DrawVWFChars::
 
 
 ; Sets up the VWF engine to start printing text
+; WARNING: If flushing the string, the auto-wordwrapper assumes that a new line is started
+;          (You might get odd gfx otherwise if the text ended close enough to the tile border)
+;          If needed, manually modify `wLineRemainingPixels` after calling this
+; WARNING: If you want to print to a specific tile ID, set wTextCurTile *after* calling this
+;          (Obviously, don't do this if you're not flushing the string)
+; WARNING: Decoration is reset when calling this, but the language is preserved
+; WARNING: Source data located between $FF00 and $FFFF will probably cause some malfunctioning
+; NOTICE: Source data outside of ROM banks is fine, but banking won't be performed.
+;         Any ROM bank number is thus fine, but avoid 0 or values too high as this triggers spurious warnings in BGB
 ; @param hl Pointer to the string to be displayed
 ; @param b  Bank containing the string
 ; @param a  Non-zero to flush the current string (use zero if you want to keep printing the same string)
@@ -146,24 +155,24 @@ PrintVWFText::
 
     ; Flag preserved from `and a`
     jr z, .dontFlush
+    ; Reset auto line-wrapper (assuming we're starting a new line)
+    ld a, [wTextLineLength]
+    inc a ; Last pixel of all chars is blank, so we can actually fit 1 extra
+    ld [wLineRemainingPixels], a
     ; Don't flush if current tile is empty
     ld a, [wTextCurPixel]
     cp 2
-    ; Flush buffer to VRAM
     call nc, FlushVWFBuffer
     ; Reset position always, though
     xor a
     ld [wTextCurPixel], a
-    ; TODO: decrease remaining amount of pixels
 .dontFlush
 
-    ; Force buffer refill
+    ; Force buffer refill by making these two identical
+    ; wTextReadPtrLow needs to be this to refill the full buffer
     ld a, LOW(wTextCharBufferEnd)
+    ld [wTextReadPtrEnd], a
     ld [wTextReadPtrLow], a
-    ; Initialize auto line-wrapper
-    ld a, [wTextLineLength]
-    inc a ; Last pixel of all chars is blank, so we can actually fit 1 extra
-    ld [wLineRemainingPixels], a
 
     ; Use black color by default (which is normally loaded into color #3)
     ld a, 3
@@ -423,7 +432,9 @@ _RefillCharBuffer:
     cp LOW(wTextCharBufferEnd)
     jr nz, .refillBuffer
 
+    dec e ; Compensate for what's below
 .done
+    inc e ; If we jumped to .done, we have written a terminator, account for it
     ; Write src ptr for later
     ld a, l
     ld [wTextSrcPtr], a
@@ -431,6 +442,8 @@ _RefillCharBuffer:
     ld [wTextSrcPtr+1], a
     ldh a, [hCurROMBank]
     ld [wTextSrcBank], a
+    ld a, e
+    ld [wTextReadPtrEnd], a
 
     ld a, BANK(_PrintVWFChar)
     rst bankswitch
@@ -644,9 +657,10 @@ _PrintVWFChar:
     ; First, check if the buffer is sufficiently full
     ; Making the buffer wrap would be costly, so we're keeping a safety margin
     ; Especially since control codes are multi-byte
-    ld a, l
-    cp LOW(wTextCharBufferEnd - 8)
-    call nc, RefillCharBuffer
+    ld a, [wTextReadPtrEnd]
+    cp l
+    call c, TextBufferOverreadError ; This needs to be first as it's a no-return
+    call z, RefillCharBuffer ; If it was second this function could destroy cayy and trigger it
 
     ; Read byte from string stream
     ld a, [hli]
