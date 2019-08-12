@@ -103,6 +103,9 @@ StartDrawingText:
     ld [wTextCurTile], a ; Force current text tile to be in range
     ld a, (SCRN_X_B - 4) * 8
     ld [wTextLineLength], a
+    ld a, 2
+    ld [wTextNbLines], a
+    ld [wTextRemainingLines], a
 
     read_bytecode_byte
     ld [wTextSrcPtr], a

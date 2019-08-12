@@ -386,10 +386,17 @@ _RefillCharBuffer:
     ld h, d ; ld h, HIGH(wTextCharBuffer)
     ld a, [wNewlinePtrLow]
     ld l, a
+    ld d, "\n"
+    ld a, [wTextRemainingLines]
+    dec a
+    jr nz, .linesRemain
+    inc a
+    ld d, TEXT_SCROLL
+.linesRemain
+    ld [wTextRemainingLines], a
     ; Dashes aren't overwritten on newlines, instead the newline is inserted right after
     ld a, [hl]
     cp " "
-    ld d, "\n"
     jr z, .overwritingNewline
     ld a, e
     cp LOW(wTextCharBufferEnd - 1)
@@ -580,10 +587,20 @@ ReaderPrintBlank:
     jp _RefillCharBuffer.insertCustomSize ; Too far to `jr`
 
     ; For the purpose of line length counting, newline, clearing and scrolling are the same
-ReaderClear:
-    ; TODO: reset newline count
+    ; For height counting, however...
 ReaderNewline:
-    ; TODO: turn newlines overflowing the box into scroll codes
+    ld a, [wTextRemainingLines]
+    dec a
+    jr nz, ReaderUpdateLineCount
+    dec e ; dec de
+    ld a, TEXT_SCROLL
+    ld [de], a
+    inc e ; inc de
+    jr ReaderScroll
+ReaderClear:
+    ld a, [wTextNbLines]
+ReaderUpdateLineCount:
+    ld [wTextRemainingLines], a
 ReaderScroll:
     ; Reset line length, since we're forcing a newline
     ld a, [wTextLineLength]

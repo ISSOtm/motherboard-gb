@@ -425,6 +425,11 @@ wTextReadPtrLow::
 wTextReadPtrEnd::
     db
 
+; Number of lines of the current text area
+wTextNbLines::
+    db
+wTextRemainingLines::
+    db
 ; Length, in pixels, of the current text line
 wTextLineLength::
     db

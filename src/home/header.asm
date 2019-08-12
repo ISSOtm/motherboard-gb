@@ -101,6 +101,8 @@ ENDR
     ld [wWrapTileID], a
     ld a, SCRN_X
     ld [wTextLineLength], a
+    ld a, SCRN_Y_B
+    ld [wTextNbLines], a
     ; a is non-zero
     ld b, BANK(LicensedText)
     ld hl, LicensedText

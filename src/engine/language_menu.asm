@@ -32,6 +32,9 @@ LanguageMenuInit:
     rst memset
     ld a, SCRN_X
     ld [wTextLineLength], a
+    ld a, SCRN_Y_B
+    ld [wTextNbLines], a
+    ld [wTextRemainingLines], a
     ; a is non-zero
     ld hl, LanguageMenuItems
     ld b, BANK(LanguageMenuItems)

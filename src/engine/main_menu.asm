@@ -64,6 +64,9 @@ MainMenuInit:
     ld [wTextCurTile], a
     ld a, SCRN_X
     ld [wTextLineLength], a
+    ld a, SCRN_Y_B
+    ld [wTextNbLines], a
+    ld [wTextRemainingLines], a
     ; a is non-zero
     ld b, BANK(MainMenuItems)
     call PrintVWFText
@@ -238,6 +241,9 @@ MusicPlayerInit:
     ld b, BANK(MusicPlayerItems)
     ld a, SCRN_X
     ld [wTextLineLength], a
+    ld a, SCRN_Y_B
+    ld [wTextNbLines], a
+    ld [wTextRemainingLines], a
     ; a is non-zero
     call PrintVWFText
     ld hl, $9C43
