@@ -308,6 +308,29 @@ RefillerControlChar:
     push bc
     ret
 
+
+RefillerTryReturning:
+    ld hl, wTextStackSize
+    ld a, [hl]
+    ld b, a
+    add a, a
+    ld [de], a ; If we're returning, we will need to write that $00; otherwise it'll be overwritten
+    jp z, _RefillCharBuffer.done ; Too far to `jr`
+    dec b
+    ld [hl], b
+    add a, b ; a = stack size * 3 + 2
+    add a, LOW(wTextStack)
+    ld l, a
+    adc a, HIGH(wTextStack)
+    sub l
+    ld h, a
+    ld a, [hld]
+    rst bankswitch
+    ld a, [hld]
+    ld l, [hl]
+    ld h, a
+    jr _RefillCharBuffer
+
 ; Refills the char buffer, assuming at least half of it has been read
 ; Newlines are injected into the buffer to implement auto line-wrapping
 ; @param hl The current read ptr into the buffer
@@ -354,7 +377,7 @@ _RefillCharBuffer:
 .refillBuffer
     ld a, [hli]
     add a, a ; Test bit 7 and prepare for control char handling
-    jr z, .tryReturning
+    jr z, RefillerTryReturning
     jr c, RefillerOnlyControlChar
     rra ; Restore A
     ld [de], a
@@ -394,6 +417,13 @@ _RefillCharBuffer:
     ld d, TEXT_SCROLL
 .linesRemain
     ld [wTextRemainingLines], a
+    ld a, [wNewlinesUntilFull]
+    dec a
+    jr nz, .dontPause
+    ld d, TEXT_WAITBUTTON_SCROLL
+    ld a, [wTextNbLines]
+.dontPause
+    ld [wNewlinesUntilFull], a
     ; Dashes aren't overwritten on newlines, instead the newline is inserted right after
     ld a, [hl]
     cp " "
@@ -459,29 +489,6 @@ _RefillCharBuffer:
     ret
 
 
-.tryReturning
-    ld hl, wTextStackSize
-    ld a, [hl]
-    ld b, a
-    add a, a
-    ld [de], a ; If we're returning, we will need to write that $00; otherwise it'll be overwritten
-    jr z, .done
-    dec b
-    ld [hl], b
-    add a, b ; a = stack size * 3 + 2
-    add a, LOW(wTextStack)
-    ld l, a
-    adc a, HIGH(wTextStack)
-    sub l
-    ld h, a
-    ld a, [hld]
-    rst bankswitch
-    ld a, [hld]
-    ld l, [hl]
-    ld h, a
-    jp .refillBuffer ; Too far to `jr`
-
-
 .canNewline
     ld a, e
     inc e
@@ -505,6 +512,7 @@ RefillerControlChars:
     dw ReaderNewline
     dw Reader1ByteNop
     dw ReaderScroll
+    dw ReaderWaitButtonScroll
 
     ; The base of the table is located at its end
     ; Unusual, I know, but it works better!
@@ -596,12 +604,27 @@ ReaderNewline:
     ld a, TEXT_SCROLL
     ld [de], a
     inc e ; inc de
-    jr ReaderScroll
+
+ReaderScroll:
+    ld a, [wNewlinesUntilFull]
+    dec a
+    jr nz, _ReaderScroll
+    dec e ; dec de
+    ld a, TEXT_WAITBUTTON_SCROLL
+    ld [de], a
+    inc e ; inc de
+ReaderWaitButtonScroll:
+    ld a, [wTextNbLines]
+_ReaderScroll:
+    ld [wNewlinesUntilFull], a
+    jr ReaderBeginNewLine
+
 ReaderClear:
     ld a, [wTextNbLines]
+    ld [wNewlinesUntilFull], a
 ReaderUpdateLineCount:
     ld [wTextRemainingLines], a
-ReaderScroll:
+ReaderBeginNewLine:
     ; Reset line length, since we're forcing a newline
     ld a, [wTextLineLength]
     ld [wLineRemainingPixels], a
@@ -886,6 +909,7 @@ _PrintVWFChar:
     dw TextNewline
     dw TextHalt
     dw TextScroll
+    dw TextWaitButtonScroll
 
 
 TextDelay:
@@ -944,6 +968,27 @@ TextSetColor:
     jr PrintNextCharInstant
 
 
+TextWaitButton:
+    xor a ; FIXME: if other bits than 7 and 6 get used, this is gonna be problematic
+    ld [wTextPaused], a
+    ldh a, [hHeldButtons]
+    and PADF_B
+    jr nz, PrintNextCharInstant
+    ldh a, [hPressedButtons]
+    rra ; Get PADF_A
+    jr c, PrintNextCharInstant
+    ; If no button has been pressed, keep reading this char
+    ; Ensure the engine reacts on the very next frame to allow swallowing buttons
+    ld a, 1
+    ld [wTextNextLetterDelay], a
+    ; We know that text is running, so it's fine to overwrite bit 7
+    ld a, $40
+    ld [wTextPaused], a
+    ; Decrement src ptr so this char keeps getting read
+    dec hl
+    ret
+
+
 TextPrintBlank:
     ld a, [hli]
     ld c, a
@@ -966,7 +1011,56 @@ TextPrintBlank:
     ld a, c
     and 7
     ld [wTextCurPixel], a
-    jr PrintNextCharInstant
+    ; Fall through
+
+PrintNextCharInstant:
+    xor a
+    ld [wTextNextLetterDelay], a
+    ret
+
+
+TextWaitButtonScroll:
+    ld a, [wTextboxSplitScanline]
+    and a
+    jr nz, .alreadyScrolling
+    call TextWaitButton
+    ; If the next char is to be read instantly, this means
+    ld a, [wTextNextLetterDelay]
+    and a
+    ret nz
+.alreadyScrolling
+    ; fallthrough
+
+TextScroll:
+    push hl
+    ld a, [wTextboxSplitScanline]
+    xor 8
+    ld [wTextboxSplitScanline], a
+    jr nz, SetupTextboxSplit
+
+.shiftTilemapRows
+    ld de, vTextboxTilemap + SCRN_VX_B     + 2
+    ld hl, vTextboxTilemap + SCRN_VX_B * 2 + 2
+    ld c, SCRN_X_B - 2 * 2
+.shiftRow
+    wait_vram
+    ld a, [hl]
+    ld [de], a
+    inc e
+    xor a
+    ld [hli], a
+    dec c
+    jr nz, .shiftRow
+    pop hl
+    ld a, [wPenPosition]
+    sub SCRN_VX_B
+    ld [wPenPosition], a
+    jr nc, .noCarry
+    ld a, [wPenPosition+1]
+    dec a
+    ld [wPenPosition+1], a
+.noCarry
+    ; fallthrough
 
 
 TextNewline:
@@ -990,32 +1084,30 @@ TextNewline:
     ld d, a
     ld a, [wTextCurTile]
     ld [de], a
-    ; Fall through
+    jr PrintNextCharInstant
 
-PrintNextCharInstant:
-    xor a
-    ld [wTextNextLetterDelay], a
-    ret
-
-
-TextWaitButton:
-    xor a ; FIXME: if other bits than 7 and 6 get used, this is gonna be problematic
-    ld [wTextPaused], a
+SetupTextboxSplit:
+    ld de, vTextboxTilemap + SCRN_VX_B
+    ld hl, vTextboxScrollTilemap
+    ld c, SCRN_X_B
+    call LCDMemcpySmall
+    ld de, vTextboxTilemap + SCRN_VX_B * 2
+    ld hl, vTextboxScrollTilemap + SCRN_VX_B
+    ld c, SCRN_X_B
+    call LCDMemcpySmall
+    wait_vram
+    ld a, $5B ; Textbox left border
+    ld [vTextboxScrollTilemap + SCRN_VX_B * 2], a
+    inc a
+    ld [vTextboxScrollTilemap + SCRN_VX_B * 2 + SCRN_X_B - 1], a
+    pop hl
+    dec hl ; Read the char again next time
+    ; Force delay before next letter so the scrolling stays for a few frames
     ldh a, [hHeldButtons]
-    and PADF_B
-    jr nz, PrintNextCharInstant
-    ldh a, [hPressedButtons]
-    rra ; Get PADF_A
-    jr c, PrintNextCharInstant
-    ; If no button has been pressed, keep reading this char
-    ; Ensure the engine reacts on the very next frame to allow swallowing buttons
-    ld a, 1
+    and 2 ; PADF_B
+    cpl ; -1 or -3
+    add a, 5
     ld [wTextNextLetterDelay], a
-    ; We know that text is running, so it's fine to overwrite bit 7
-    ld a, $40
-    ld [wTextPaused], a
-    ; Decrement src ptr so this char keeps getting read
-    dec hl
     ret
 
 
@@ -1049,61 +1141,6 @@ TextClear:
 
     pop hl
     ret
-
-
-TextScroll:
-    push hl
-    ld a, [wTextboxSplitScanline]
-    xor 8
-    ld [wTextboxSplitScanline], a
-    jr z, .shiftTilemapRows
-
-    ld de, vTextboxTilemap + SCRN_VX_B
-    ld hl, vTextboxScrollTilemap
-    ld c, SCRN_X_B
-    call LCDMemcpySmall
-    ld de, vTextboxTilemap + SCRN_VX_B * 2
-    ld hl, vTextboxScrollTilemap + SCRN_VX_B
-    ld c, SCRN_X_B
-    call LCDMemcpySmall
-    wait_vram
-    ld a, $5B ; Textbox left border
-    ld [vTextboxScrollTilemap + SCRN_VX_B * 2], a
-    inc a
-    ld [vTextboxScrollTilemap + SCRN_VX_B * 2 + SCRN_X_B - 1], a
-    pop hl
-    dec hl ; Read the char again next time
-    ; Force delay before next letter so the scrolling stays for a few frames
-    ldh a, [hHeldButtons]
-    and 2 ; PADF_B
-    cpl ; -1 or -3
-    add a, 5
-    ld [wTextNextLetterDelay], a
-    ret
-
-.shiftTilemapRows
-    ld de, vTextboxTilemap + SCRN_VX_B     + 2
-    ld hl, vTextboxTilemap + SCRN_VX_B * 2 + 2
-    ld c, SCRN_X_B - 2 * 2
-.shiftRow
-    wait_vram
-    ld a, [hl]
-    ld [de], a
-    inc e
-    xor a
-    ld [hli], a
-    dec c
-    jr nz, .shiftRow
-    pop hl
-    ld a, [wPenPosition]
-    sub SCRN_VX_B
-    ld [wPenPosition], a
-    jr nc, .noCarry
-    ld a, [wPenPosition+1]
-    dec a
-    ld [wPenPosition+1], a
-.noCarry
-    jp TextNewline
 
 
 

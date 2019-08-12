@@ -106,6 +106,7 @@ StartDrawingText:
     ld a, 2
     ld [wTextNbLines], a
     ld [wTextRemainingLines], a
+    ld [wNewlinesUntilFull], a
 
     read_bytecode_byte
     ld [wTextSrcPtr], a

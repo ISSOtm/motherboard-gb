@@ -428,7 +428,11 @@ wTextReadPtrEnd::
 ; Number of lines of the current text area
 wTextNbLines::
     db
+; How many newlines remain before the text box is full
 wTextRemainingLines::
+    db
+; How many newlines remain until the text box has been filled with fresh text
+wNewlinesUntilFull::
     db
 ; Length, in pixels, of the current text line
 wTextLineLength::

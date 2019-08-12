@@ -35,6 +35,7 @@ LanguageMenuInit:
     ld a, SCRN_Y_B
     ld [wTextNbLines], a
     ld [wTextRemainingLines], a
+    ld [wNewlinesUntilFull], a
     ; a is non-zero
     ld hl, LanguageMenuItems
     ld b, BANK(LanguageMenuItems)

@@ -67,6 +67,7 @@ MainMenuInit:
     ld a, SCRN_Y_B
     ld [wTextNbLines], a
     ld [wTextRemainingLines], a
+    ld [wNewlinesUntilFull], a
     ; a is non-zero
     ld b, BANK(MainMenuItems)
     call PrintVWFText
@@ -244,6 +245,7 @@ MusicPlayerInit:
     ld a, SCRN_Y_B
     ld [wTextNbLines], a
     ld [wTextRemainingLines], a
+    ld [wNewlinesUntilFull], a
     ; a is non-zero
     call PrintVWFText
     ld hl, $9C43
