@@ -314,7 +314,7 @@ RefillerControlChar:
 RefillCharBuffer:
     ld de, wTextCharBuffer
     ; First, copy remaining chars into the buffer
-    ld a, LOW(wTextCharBufferEnd)
+    ld a, [wTextReadPtrEnd]
     sub l
     ld c, a
     jr z, .charBufferEmpty
@@ -429,8 +429,8 @@ _RefillCharBuffer:
 
 .afterControlChar
     ld a, e
-    cp LOW(wTextCharBufferEnd)
-    jr nz, .refillBuffer
+    cp LOW(wTextCharBufferEnd - 2) ; Give ourselves some margin due to multi-byte control chars
+    jr c, .refillBuffer
 
     dec e ; Compensate for what's below
 .done

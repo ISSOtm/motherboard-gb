@@ -338,11 +338,11 @@ wPreviousMenuItem::
     db
 
 
-SECTION "VWF engine memory", WRAM0,ALIGN[6]
+SECTION "VWF engine memory", WRAM0,ALIGN[7]
 
 wTextCharBuffer::
     ds 64
-wTextCharBufferEnd::
+wTextCharBufferEnd:: ; We need this not to be on a 256-byte boundary
 
 ; This is ALIGN[6]
 wTextTileBuffer::
