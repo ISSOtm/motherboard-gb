@@ -602,7 +602,7 @@ PURGE BYTE_NUM
 
 SECTION "CopyShiftedPlayerTiles", ROMX ; This function is huge, and therefore we'll be avoiding putting it in ROM0
 
-CopyShiftedPlayerTiles:
+CopyShiftedPlayerTiles::
     ; Copying this using the fast copy mechanism is not gonna fit into VBlank: we need dedicated code
     ; Yes, we're using popslide. Yes, this means interrupts can corrupt the data being read. But here's why it's not a problem:
     ; We're reading the data via `pop`s. This means the data being corrupted is data we've already read.

@@ -1,7 +1,7 @@
 
 SECTION "Main menu header", ROMX
 
-MainMenuHeader:
+MainMenuHeader::
     db BANK("Main menu data")
     dw MainMenuInit
     db PADF_A | PADF_B | PADF_DOWN | PADF_UP
