@@ -39,14 +39,24 @@ Strcpy::
     ret
 
 ; Copies c bytes of data from de to hl in a LCD-safe manner
+; DO NOT USE FOR A SIZE OF 1 BYTE
 LCDMemcpySmall::
  f LCDMemcpySmall
+    srl c
+    jr nc, .copy
     wait_vram
     ld a, [de]
     ld [hli], a
     inc de
+.copy
+    wait_vram
+REPT 2
+    ld a, [de]
+    ld [hli], a
+    inc de
+ENDR
     dec c
-    jr nz, LCDMemcpySmall
+    jr nz, .copy
     ret
 
 ; Copies bc bytes of data from de to hl in a LCD-safe manner
@@ -56,6 +66,7 @@ LCDMemcpy::
     inc c
     jr .begin
 .loop
+    ; TODO: only wait every two bytes, if possible?
     wait_vram
     ld a, [de]
     ld [hli], a
