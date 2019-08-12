@@ -27,6 +27,7 @@ TEXT_NEWLINE_CAPACITY = 10
     enum_elem TEXT_CLEAR
     enum_elem TEXT_NEWLINE ; '\n'
     enum_elem TEXT_HALT
+    enum_elem TEXT_SCROLL
     enum_elem TEXT_BAD_CTRL_CHAR
 
     ; Reader-only control chars

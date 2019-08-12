@@ -203,6 +203,10 @@ wTargetWarp::
 ; If zero, the textbox is simply not displayed
 wTextboxScanline::
     db
+; Number of scanlines between the top of the textbox and its split
+; If zero, no split is made
+wTextboxSplitScanline::
+    db
 
 ; Are the player's tiles shifted?
 wPlayerTilesShifted::
@@ -235,13 +239,13 @@ wCurStateFirstFrame::
     db
 
 
+; $50 past 256 boundary
+
+
 ; Whether to update sprites, scrolling regs, etc.
 ; Not part of the state data to be able to freeze the overworld dynamically
 wDoOverworldUpdates::
     db
-
-
-; $50 past 256 boundary
 
 
 ; Top camera lock position (pixels, inclusive) - position of the top edge
@@ -275,11 +279,6 @@ wFadePalettes::
     ds 3
 
 
-; Indicates which buttons should be taken into account by the overworld engine
-wPlayerInputsMask::
-    db
-
-
 ; $60 past 256 boundary
 
 
@@ -305,6 +304,11 @@ wPlayerStateChange::
     db
 wPlayerLoadedTiles::
     dw
+
+
+; Indicates which buttons should be taken into account by the overworld engine
+wPlayerInputsMask::
+    db
 
 
 SECTION "Menu system vars", WRAM0

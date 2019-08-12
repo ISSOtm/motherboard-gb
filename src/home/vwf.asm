@@ -497,6 +497,7 @@ RefillerControlChars:
     dw ReaderClear
     dw ReaderNewline
     dw Reader1ByteNop
+    dw ReaderScroll
 
     ; The base of the table is located at its end
     ; Unusual, I know, but it works better!
@@ -578,9 +579,12 @@ ReaderPrintBlank:
     ld c, "A" ; Make sure we won't get a newline
     jp _RefillCharBuffer.insertCustomSize ; Too far to `jr`
 
+    ; For the purpose of line length counting, newline, clearing and scrolling are the same
 ReaderClear:
-    ; For the purpose of line length counting, newline and clearing are the same
+    ; TODO: reset newline count
 ReaderNewline:
+    ; TODO: turn newlines overflowing the box into scroll codes
+ReaderScroll:
     ; Reset line length, since we're forcing a newline
     ld a, [wTextLineLength]
     ld [wLineRemainingPixels], a
@@ -864,6 +868,7 @@ _PrintVWFChar:
     dw TextClear
     dw TextNewline
     dw TextHalt
+    dw TextScroll
 
 
 TextDelay:
@@ -1027,6 +1032,61 @@ TextClear:
 
     pop hl
     ret
+
+
+TextScroll:
+    push hl
+    ld a, [wTextboxSplitScanline]
+    xor 8
+    ld [wTextboxSplitScanline], a
+    jr z, .shiftTilemapRows
+
+    ld de, vTextboxTilemap + SCRN_VX_B
+    ld hl, vTextboxScrollTilemap
+    ld c, SCRN_X_B
+    call LCDMemcpySmall
+    ld de, vTextboxTilemap + SCRN_VX_B * 2
+    ld hl, vTextboxScrollTilemap + SCRN_VX_B
+    ld c, SCRN_X_B
+    call LCDMemcpySmall
+    wait_vram
+    ld a, $5B ; Textbox left border
+    ld [vTextboxScrollTilemap + SCRN_VX_B * 2], a
+    inc a
+    ld [vTextboxScrollTilemap + SCRN_VX_B * 2 + SCRN_X_B - 1], a
+    pop hl
+    dec hl ; Read the char again next time
+    ; Force delay before next letter so the scrolling stays for a few frames
+    ldh a, [hHeldButtons]
+    and 2 ; PADF_B
+    cpl ; -1 or -3
+    add a, 5
+    ld [wTextNextLetterDelay], a
+    ret
+
+.shiftTilemapRows
+    ld de, vTextboxTilemap + SCRN_VX_B     + 2
+    ld hl, vTextboxTilemap + SCRN_VX_B * 2 + 2
+    ld c, SCRN_X_B - 2 * 2
+.shiftRow
+    wait_vram
+    ld a, [hl]
+    ld [de], a
+    inc e
+    xor a
+    ld [hli], a
+    dec c
+    jr nz, .shiftRow
+    pop hl
+    ld a, [wPenPosition]
+    sub SCRN_VX_B
+    ld [wPenPosition], a
+    jr nc, .noCarry
+    ld a, [wPenPosition+1]
+    dec a
+    ld [wPenPosition+1], a
+.noCarry
+    jp TextNewline
 
 
 

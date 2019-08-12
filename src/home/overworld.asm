@@ -478,7 +478,31 @@ OverworldUpdate:
     ld a, SCRN_Y
     sub b
     ld [$FF00+c], a
+    ld e, a
     inc c
+    ld a, [wTextboxSplitScanline]
+    and a
+    jr z, .noTextboxSplit
+    add a, b
+    ldh [c], a
+    inc c
+    ld a, LOW(rSCY)
+    ldh [c], a
+    inc c
+    ld a, 7 * 8 + 4
+    ldh [c], a
+    inc c
+    ; Restore original scroll for last row
+    ld a, SCRN_Y - 8
+    ldh [c], a
+    inc c
+    ld a, LOW(rSCY)
+    ldh [c], a
+    inc c
+    ld a, e
+    ldh [c], a
+    inc c
+.noTextboxSplit
     ; Write terminator, since textbox overwrites all other FX
     ld a, $FF
     ld [$FF00+c], a
@@ -1314,6 +1338,7 @@ OverworldStateBegin:
 
     ; xor a
     ld [wTextboxScanline], a
+    ld [wTextboxSplitScanline], a
     ; ld a, PAL_PACKT_ACTION_NONE
     ld [wPalettePacketAction], a
 

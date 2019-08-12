@@ -49,3 +49,5 @@ vWindowTilemap::
     ds SCRN_VX_B * SCRN_Y_B ; $240
 vTextboxTilemap::
     ds SCRN_VX_B * 4 ; $80
+vTextboxScrollTilemap::
+    ds SCRN_VX_B * 3 ; $60
