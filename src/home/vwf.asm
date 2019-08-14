@@ -733,7 +733,7 @@ _PrintVWFChar:
     ; Read byte from string stream
     ld a, [hli]
     and a ; Check for terminator
-    jp z, .return
+    jr z, .return
     cp " "
     jr c, PrintVWFControlChar
 
@@ -848,14 +848,16 @@ _PrintVWFChar:
     ld [wTextCurPixel], a
     ; Flush them to VRAM
     call FlushVWFBuffer
-    ; Check if the second tile needs to be flushed as well (happens with characters 9 pixels wide)
+    ; Try flushing again (happens with characters 9 pixels wide)
     ; We might never use 9-px chars, but if we do, there'll be support for them ^^
-    ld a, [wTextCurPixel]
-    sub 8
-    jr c, .flushed
-    ld [wTextCurPixel], a
-    call FlushVWFBuffer
-.flushed
+    jr .charPrinted
+
+; This block of code is only here to avoid turning a `jp` into a `jr`
+.return
+    ; Tell caller we're done (if we're not, this'll be overwritten)
+    ld a, $FF
+    ld [wTextSrcPtr + 1], a
+    jr .flushAndFinish
 
 .noTilesToFlush
     ; If not printing next char immediately, force to flush
@@ -874,6 +876,7 @@ _PrintVWFChar:
     cp 2
     ret c
 
+    ; We're not using FlushVWFBuffer because we don't want to advance the tile
     ld a, [wTextCurTile]
     swap a
     ld h, a
