@@ -15,6 +15,6 @@ INITTARGETS  := $(INITTARGETS)  $(MAPGFXFILELIST)
 $(RESDIR)/%.chr $(RESDIR)/%.asm: $(SRCDIR)/tools/gen_map.py $(RESDIR)/%.json
 	$^
 
-$(SRCDIR)/constants/maps.asm: $(SRCDIR)/tools/gen_map_enum.py
+$(SRCDIR)/constants/maps.asm: $(SRCDIR)/tools/gen_map_enum.py $(SRCDIR)/maps.asm $(wildcard $(RESDIR)/**/*.json)
 	$^
 
