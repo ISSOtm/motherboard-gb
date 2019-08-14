@@ -687,6 +687,30 @@ ReaderCall:
 
 SECTION "VWF ROMX functions + data", ROMX
 
+PrintVWFControlChar:
+    ; Check if ctrl char is valid
+    cp TEXT_BAD_CTRL_CHAR
+    call nc, TextCtrlCharError
+
+    ; Control char, run the associated function
+    ld de, _PrintVWFChar.charPrinted
+    push de
+
+    ; Push the func's addr (so we can preserve hl when calling)
+    add a, a
+    add a, LOW(ControlCharFuncs - 2)
+    ld e, a
+    adc a, HIGH(ControlCharFuncs - 2)
+    sub e
+    ld d, a
+    ld a, [de]
+    ld c, a
+    inc de
+    ld a, [de]
+    ld b, a
+    push bc
+    ret ; Actually jump to the function, passing `hl` as a parameter for it to read (and advance)
+
 _PrintVWFChar:
     ld h, HIGH(wTextCharBuffer)
     ld a, [wTextReadPtrLow]
@@ -711,7 +735,7 @@ _PrintVWFChar:
     and a ; Check for terminator
     jp z, .return
     cp " "
-    jp c, .controlChar
+    jr c, PrintVWFControlChar
 
 ; Print char
 
@@ -871,32 +895,7 @@ _PrintVWFChar:
     jr .flushAndFinish
 
 
-.controlChar
-    ; Check if ctrl char is valid
-    cp TEXT_BAD_CTRL_CHAR
-    call nc, TextCtrlCharError
-
-    ; Control char, run the associated function
-    ld de, .charPrinted
-    push de
-
-    ; Push the func's addr (so we can preserve hl when calling)
-    add a, a
-    add a, LOW(.controlCharFuncs - 2)
-    ld e, a
-    adc a, HIGH(.controlCharFuncs - 2)
-    sub e
-    ld d, a
-    ld a, [de]
-    ld c, a
-    inc de
-    ld a, [de]
-    ld b, a
-    push bc
-    ret ; Actually jump to the function, passing `hl` as a parameter for it to read (and advance)
-
-
-.controlCharFuncs
+ControlCharFuncs:
     dw TextSetLanguage
     dw TextRestoreLanguage
     dw TextSetDecoration
