@@ -428,6 +428,11 @@ _RefillCharBuffer:
     ld a, [hl]
     cp " "
     jr z, .overwritingNewline
+    cp SOFT_HYPHEN
+    jr nz, .noSoftHyphen
+    ld a, "-"
+    ld [hli], a
+.noSoftHyphen
     ld a, e
     cp LOW(wTextCharBufferEnd - 1)
     jr z, .bufferFull
@@ -516,6 +521,7 @@ RefillerControlChars:
 
     ; The base of the table is located at its end
     ; Unusual, I know, but it works better!
+    dw ReaderSoftHyphen
     dw ReaderJumpTo
     dw ReaderCall
 RefillerOnlyControlChars:
@@ -525,6 +531,15 @@ Reader2ByteNop:
     ld [de], a
     inc e
 Reader1ByteNop:
+    ret
+
+ReaderSoftHyphen:
+    ld a, e
+    ld [wNewlinePtrLow], a
+    dec hl
+    ld a, [hli]
+    ld [de], a
+    inc e ; inc de
     ret
 
 ReaderSetLanguage:
@@ -728,12 +743,14 @@ _PrintVWFChar:
     ld a, [wTextReadPtrEnd]
     cp l
     call c, TextBufferOverreadError ; This needs to be first as it's a no-return
-    call z, RefillCharBuffer ; If it was second this function could destroy cayy and trigger it
+    call z, RefillCharBuffer ; If it was second this function could destroy carry and trigger it
 
     ; Read byte from string stream
     ld a, [hli]
-    and a ; Check for terminator
+    add a, a ; Check for terminator and reader-only control char
+    jr c, .nextChar ; We read a reader-only control char, ignore it
     jr z, .return
+    rra
     cp " "
     jr c, PrintVWFControlChar
 
@@ -889,13 +906,6 @@ _PrintVWFChar:
     ld de, wTextTileBuffer
     ld c, $10
     jp LCDMemcpySmall ; Tail call
-
-
-.return
-    ; Tell caller we're done (if we're not, this'll be overwritten)
-    ld a, $FF
-    ld [wTextSrcPtr + 1], a
-    jr .flushAndFinish
 
 
 ControlCharFuncs:

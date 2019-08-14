@@ -32,6 +32,7 @@ TEXT_NEWLINE_CAPACITY = 10
     enum_elem TEXT_BAD_CTRL_CHAR
 
     ; Reader-only control chars
+    enum_elem SOFT_HYPHEN, $FD ; Ideally $AD because that's the Unicode code point
     enum_elem TEXT_JUMP, $FE
     enum_elem TEXT_CALL, $FF
 
