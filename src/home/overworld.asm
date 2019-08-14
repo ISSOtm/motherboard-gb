@@ -17,13 +17,13 @@ BeginOverworld::
     ; xor a
     ld [wPlayerTilesShifted], a
     ; xor a
-IF DEF(PedanticMemInit)
-    ld [wMapScriptPtr], a
-ENDC
     ld [wMapScriptPtr+1], a
     ld [wMapScriptPtr+2], a
     inc a ; ld a, 1 ; Fade to black
     ld [wFadeType], a
+IF DEF(PedanticMemInit)
+    ld [wMapScriptPtr], a
+ENDC
     ld a, 10 frames
     ld [wFadeDelay], a
 
