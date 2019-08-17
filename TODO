@@ -8,6 +8,7 @@ Make player interact with what's in front of them instead of at their feet
 Language features (different strings)
 Main menu (finish it)
 Dynamic collision detection (source some collision mappings from RAM and modify them)
-Finish overlap fix
 Pause menu
+Automatic text centering (problem: what if the line is cut in the middle by a buffer refill?)
+Finish overlap fix
 Compress title screen XOR masks and unpack 'em to WRAM (should be done late, since it might crush uninitialized memory exceptions, and isn't very invasive)
