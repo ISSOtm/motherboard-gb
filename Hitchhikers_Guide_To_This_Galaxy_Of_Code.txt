@@ -35,6 +35,12 @@ Another folder's contents may be used, fairly more liberally: the `res` folder. 
 
 # Folder notes
 
+## `docs`
+
+These are notes regarding various things related to the game engine. This will probably be incomplete, and nothing's better than just diving into the code, but those files should be of help.
+
+Note that .md files are text files just like this one, just with the same formatting. (I used .txt so people would know to read this as text)
+
 ## `constants`, `macros`
 
 These folders contain a bunch of files that serve as compilation helpers. (They define useful macros and constants, mostly.) They should be included in every compilation unit's root file (see an existing one for an example.)
@@ -66,8 +72,14 @@ This folder contains tools needed to build resources in the `res` folder. ...Con
 This folder is... kind of a mess. In there should go the files with that get `INCBIN`'d into the `engine` files. And also the original assets that led to their creation, automated or not.
 There's a catch with automated creation. If a file doesn't have an explicit rule on how to create it, `make` will fail to build, at least from scratch. The solution is to indicate how things are built, but you gotta follow some rules for it to stay automated.
 
-First, subdirs of the `res` folder should all contain one `Makefile` that contains instructions on how to build everything in that folder.
+First, subdirs of the `res` folder should all contain one `Makefile` that contains instructions on how to build everything in that folder. (There are two exceptions explained right below.)
 The big catch is that the Makefile will not be run from the folder where it's in, but *from the root of the project*. Write your rules with that in mind.
+
+Second, files that need to be built before the first compilation can work need to be added to the `INITTARGETS` variable. Third, those files, and all files that may also be generated as byproducts, should be added to the `CLEANTARGETS` variable. (Normally `make` then `make clean` from a fresh clone should yield a clean state again, if you see what the purpose is.)
+
+### `res/hardware.inc` and `res/rgbds-structs`
+
+These two folders are submodules used to keep track of upstream changes. They don't contain Makefiles and some of their .asm files are `INCLUDE`d directly from the main code, but that's normal.
 
 ### `res/npc`
 
