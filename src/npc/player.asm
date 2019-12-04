@@ -282,20 +282,20 @@ LoadCurrentPlayerGfx::
 
 
 PlayerDownStandingTiles:
-INCBIN "res/npc/player/front_back/down_standing.chr"
+INCBIN "src/res/npc/player/front_back/down_standing.chr"
 PlayerUpStandingTiles:
-INCBIN "res/npc/player/front_back/up_standing.chr"
+INCBIN "src/res/npc/player/front_back/up_standing.chr"
 PlayerSideStandingTiles:
-INCBIN "res/npc/player/side/standing.chr"
+INCBIN "src/res/npc/player/side/standing.chr"
 
 
 PlayerDownWalkingTiles:
-INCBIN "res/npc/player/front_back/down_walking.chr"
+INCBIN "src/res/npc/player/front_back/down_walking.chr"
 PlayerUpWalkingTiles:
-INCBIN "res/npc/player/front_back/up_walking.chr"
+INCBIN "src/res/npc/player/front_back/up_walking.chr"
 PlayerSideWalkingTiles0:
-INCBIN "res/npc/player/side/walking0.chr"
+INCBIN "src/res/npc/player/side/walking0.chr"
 PlayerSideWalkingTiles1:
-INCBIN "res/npc/player/side/walking1.chr"
+INCBIN "src/res/npc/player/side/walking1.chr"
 PlayerSideWalkingTiles2:
-INCBIN "res/npc/player/side/walking2.chr"
+INCBIN "src/res/npc/player/side/walking2.chr"

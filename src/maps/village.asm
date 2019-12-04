@@ -2,7 +2,7 @@
 SECTION "Village map header", ROMX
 
  map_header Village
-INCLUDE "res/maps/village/village.asm"
+INCLUDE "src/res/maps/village/village.asm"
 
 VillageMapScript:
     ld a, [wPlayer_XPos+1]

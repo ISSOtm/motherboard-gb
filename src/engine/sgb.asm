@@ -11,7 +11,7 @@ DisablePalettesPacket:
 
 NB_BORDER_TILES = 1
 CompressedBorderTiles:
-INCBIN "res/sgb/borders/tetbits.borderchr.pb16"
+INCBIN "src/res/sgb/borders/tetbits.borderchr.pb16"
 TransferBorderTilesPacket:
     sgb_packet CHR_TRN, 1, %00 ; BG tiles, $00-7F
 TransferBorderTilesPacket2:
@@ -19,19 +19,19 @@ TransferBorderTilesPacket2:
 
 BORDER_ATTRIBUTE_SIZE = $880
 CompressedBorderAttributes:
-INCBIN "res/sgb/borders/tetbits.borderattr.pb16"
+INCBIN "src/res/sgb/borders/tetbits.borderattr.pb16"
 TransferBorderAttributesPacket:
     sgb_packet PCT_TRN, 1
 
 NB_ATTRIBUTE_FILES = 3
 CompressedAttributeFiles:
-INCBIN "res/sgb/attr_files.bin.pb16"
+INCBIN "src/res/sgb/attr_files.bin.pb16"
 TransferAttributeFilesPacket:
     sgb_packet ATTR_TRN, 1
 
 NB_PALETTE_FILES = 10
 CompressedPaletteFiles:
-INCBIN "res/sgb/palettes.bin.pb16"
+INCBIN "src/res/sgb/palettes.bin.pb16"
 TransferPaletteFilesPacket:
     sgb_packet PAL_TRN, 1
 
@@ -45,12 +45,9 @@ DoSGBSetup::
     call SendPackets
     lb bc, 2, LOW(rP1)
 .tryAgain
-    ; Now poll input...
+    ; Now poll buttons (these are the only thing a real SGB cares about)...
     ld a, $10
     ld [$ff00+c], a
-    ; Apparently polling only $10 is enough..?
-;    ld a, $20
-;    ld [$ff00+c], a
     ; ...and say we're over.
     ld a, $30
     ld [$ff00+c], a

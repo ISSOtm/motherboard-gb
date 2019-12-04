@@ -38,9 +38,6 @@ FXFLAGS += -j -f lh -i $(GameID) -k $(NewLicensee) -l $(OldLicensee) -m $(MBCTyp
 ASMFILES := $(wildcard $(SRCDIR)/*.asm)
 
 
-$(shell $(MKDIR) -p $(DEPSDIR))
-
-
 
 ################################################
 #                                              #
@@ -80,42 +77,19 @@ clean:
 	-rm -rf $(CLEANTARGETS)
 .PHONY: clean
 
-# `dummy` is a dummy target to build the resource files necessary for RGBASM to not fail on compilation
-# It's made an actual file to avoid an infinite compilation loop
-# INITTARGETS is defined by the resource Makefiles
-dummy: $(INITTARGETS)
-	@echo "THIS FILE ENSURES THAT COMPILATION GOES RIGHT THE FIRST TIME, DO NOT DELETE" > $@
-
 # `.d` files are generated as dependency lists of the "root" ASM files, to save a lot of hassle.
-# > Obj files also depend on `dummy` to ensure all the binary files are present, so RGBASM doesn't choke on them not being present;
-# > This would cause the first compilation to never finish, thus Make never knows to build the binary files, thus deadlocking everything.
 # Compiling also generates dependency files!
 # Also add all obj dependencies to the deps file too, so Make knows to remake it
-# RGBDS is stupid, so dependency files cannot be generated if obj files aren't,
-#  so if a dep file is missing but an obj is there, we need to delete the object and start over
-$(DEPSDIR)/%.d: $(OBJDIR)/%.o ;
+$(DEPSDIR)/%.d: $(SRCDIR)/%.asm
+	@$(MKDIR) -p $(DEPSDIR)
+	$(RGBASM) $(ASFLAGS) -M "$@" -MG -MP -MQ "$@" -MQ "$@" "$<"
 
-$(OBJDIR)/%.o: DEPFILE = $(DEPSDIR)/$*.d
-$(OBJDIR)/%.o: $(SRCDIR)/%.asm dummy
+$(OBJDIR)/%.o: $(SRCDIR)/%.asm
 	@$(MKDIR) -p $(OBJDIR)
-	set -e; \
-	TMP_DEPFILE=$$(mktemp); \
-	$(RGBASM) -M $$TMP_DEPFILE $(ASFLAGS) -o $@ $<; \
-	sed 's,\($*\)\.o[ :]*,\1.o $(DEPFILE): ,g' < $$TMP_DEPFILE > $(DEPFILE); \
-	for line in $$(cut -d ":" -f 2 $$TMP_DEPFILE); do if [ "$$line" != "$<" ]; then echo "$$line: ;" >> $(DEPFILE); fi; done; \
-	rm $$TMP_DEPFILE
-
-# Include (and potentially remake) all dependency files
-# Remove duplicated recipes (`sort | uniq`), hence using yet another file grouping everything
-# Also filter out lines already defined in the resource Makefiles because defining two rules for the same file causes Bad Things(tm) (`grep`)
-SPACE :=
-SPACE +=
-# Yes this "space" hack is NEEDED. I don't like where I'm going anymore, either
-$(DEPSDIR)/all: $(patsubst $(SRCDIR)/%.asm,$(DEPSDIR)/%.d,$(ASMFILES))
-	cat $^ | sort | uniq | grep -vE "^($(subst .,\\.,$(subst $(SPACE),|,$(strip $(INITTARGETS))))): ;" > $@
+	$(RGBASM) $(ASFLAGS) -o $@ $<
 
 ifneq ($(MAKECMDGOALS),clean)
-include $(DEPSDIR)/all
+include $(patsubst $(SRCDIR)/%.asm,$(DEPSDIR)/%.d,$(ASMFILES))
 endif
 
 

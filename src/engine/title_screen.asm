@@ -101,7 +101,7 @@ TitleScreen::
     inc a
     ld [hl], a
     ; Gfx are loaded as frame 0, so we'll begin by animating frame 1
-    
+
     ; Animations are done by XOR'ing tile data with data to go back and forth from frame 1 to frame 0 or 2 (depending on counter)
     ; Each frame lasts 32 frames (1/2 second)
     sub FRAMES_BETWEEN_ANIMATIONS ; Each animation frame lasts 16 frames
@@ -214,7 +214,7 @@ ENDR
 
 
 .tiles
-INCBIN "res/title_screen/frame_0.chr.pb16"
+INCBIN "src/res/title_screen/frame_0.chr.pb16"
 .tilesEnd
 
 .tilemapDirectives
@@ -232,7 +232,7 @@ INCBIN "res/title_screen/frame_0.chr.pb16"
     db 4
     db 10
     db 12
-    
+
     db 6
     db 3
     db 5
@@ -286,7 +286,7 @@ INCBIN "res/title_screen/frame_0.chr.pb16"
 
     db 20
     db 12
-    
+
     db 16
     db 1
     db 3
@@ -363,9 +363,9 @@ INCBIN "res/title_screen/frame_0.chr.pb16"
     dw .frame3OAM
 
 .frame_0_1_xor
-INCBIN "res/title_screen/frame_0_xor_frame_1.bin"
+INCBIN "src/res/title_screen/frame_0_xor_frame_1.bin"
 .frame_1_2_xor
-INCBIN "res/title_screen/frame_1_xor_frame_2.bin"
+INCBIN "src/res/title_screen/frame_1_xor_frame_2.bin"
 
 ; FIXME: The numbers in the comments need to be changed (add 3 to each)
 .frame1OAM

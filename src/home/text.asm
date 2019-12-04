@@ -127,4 +127,4 @@ TextboxSGBLayoutPacket::
 SECTION "Textbox gfx", ROMX
 
 TextboxTiles::
-INCBIN "res/textbox/textbox.chr"
+INCBIN "src/res/textbox/textbox.chr"

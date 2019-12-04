@@ -4,7 +4,7 @@ SECTION "Studio screen", ROMX
 
 NB_STUDIO_TILES = $E5
 CompressedStudioTiles:
-    INCBIN "res/studio_screen/studio_screen.chr.pb16"
+    INCBIN "src/res/studio_screen/studio_screen.chr.pb16"
 StudioMap:
     db 7, 2, 1, 10
     db 12 + 7, 2, 1, 10
@@ -28,9 +28,9 @@ StudioMap:
 
 NB_COPYRIGHT_TILES = 227
 CompressedCopyrightTiles:
-    INCBIN "res/studio_screen/credits.chr.pb16"
+    INCBIN "src/res/studio_screen/credits.chr.pb16"
 CopyrightMap:
-    INCBIN "res/studio_screen/credits.tilemap"
+    INCBIN "src/res/studio_screen/credits.tilemap"
 CopyrightMapEnd:
 
 

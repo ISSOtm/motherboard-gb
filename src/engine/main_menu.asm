@@ -93,7 +93,7 @@ MainMenuInit:
     jp DrawVWFChars
 
 .tiles
-INCBIN "res/main_menu/main_menu.oam.chr"
+INCBIN "src/res/main_menu/main_menu.oam.chr"
 .tilesEnd
 
 .oam
@@ -262,11 +262,11 @@ MusicPlayerInit:
     jp DrawVWFChars
 
 .tiles
-INCBIN "res/main_menu/music_player.chr"
+INCBIN "src/res/main_menu/music_player.chr"
 .tilesEnd
 
 .tilemap
-INCBIN "res/main_menu/music_player.90.offset.tilemap"
+INCBIN "src/res/main_menu/music_player.90.offset.tilemap"
 
 MusicPlayerRedraw:
     ret

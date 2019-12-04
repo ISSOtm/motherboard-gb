@@ -89,7 +89,7 @@ LanguageMenuInit:
     jp DrawVWFChars
 
 .gfx
-INCBIN "res/lang_screen/gfx.chr.pb16"
+INCBIN "src/res/lang_screen/gfx.chr.pb16"
 
 .oam
     dspr  6 * 8 -  2,  6 * 8, $80, 0

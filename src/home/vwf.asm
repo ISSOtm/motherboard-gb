@@ -1164,4 +1164,4 @@ CharsetPtrs::
 
 
 LatinCharsetBasic::
-INCBIN "res/textbox/latin.font"
+INCBIN "src/res/textbox/latin.font"
